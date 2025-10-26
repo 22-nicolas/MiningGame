@@ -81,8 +81,6 @@ function InventoryUIHandler.initPlayerUI(player: Player, mouse: PlayerMouse)
 
 	self:setUpTabs()
 
-	print("Rojo is working! YUHU!")
-
 	return self
 end
 
