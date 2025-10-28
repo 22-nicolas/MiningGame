@@ -23,8 +23,8 @@ When a player joins a new metatable gets created that stores player data. When m
 When the player gains Items/Materials they get displayed by the `src/ReplicatedStorage/PlayerUI` scripts. The Items can be Equiped to the Hotbar this is in early Progress though and has some bugs because of the way Roblox handles tables (dictionary/array) and how RemoteEvents send the data.
 
 ### Other
--Loot notifications
--Fortnite like weak spot system.
+- Loot notifications
+- Fortnite like weak spot system.
 
 ### Future Implementations
 - Fixing hotbar bugs
@@ -37,4 +37,4 @@ When the player gains Items/Materials they get displayed by the `src/ReplicatedS
 ### 🎬 Preview
 Here’s a short look at mining in action (loot notifications weren't on screen):
 
-![Mining Demo](https://imgur.com/a/GoSG4VJ.gif)
+![Mining Demo](https://imgur.com/a/GoSG4VJ)
