@@ -3,11 +3,9 @@ local InventoryUIHandler = {}
 --Services
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local HttpService = game:GetService("HttpService")
 
 --Modules
 local Utils = require(ReplicatedStorage:WaitForChild("Utils"))
-local Items = require(ReplicatedStorage:WaitForChild("Items"))
 
 local LootNotifications = require(script:WaitForChild("LootNotifications"))
 local Bag = require(script:WaitForChild("Bag"))
@@ -114,7 +112,7 @@ end
 function playerUI:resizeCursorItem()
 	local timeout = 5
 	local init = false
-	for i = 0, 5 do
+	for i = 0, timeout do
 		if self.ItemsInv and self.ItemsInv.Slots and self.ItemsInv.Slots[1] then
 			init = true
 			break
@@ -128,7 +126,7 @@ function playerUI:resizeCursorItem()
 	end
 
 	self.cursorItem.Instance.Size =
-		UDim2.new(0, self.ItemsInv.Slots[1].Instance.AbsoluteSize.X, 0, self.ItemsInv.Slots[1].Instance.AbsoluteSize.Y)
+		UDim2.fromOffset(self.ItemsInv.Slots[1].Instance.AbsoluteSize.X, self.ItemsInv.Slots[1].Instance.AbsoluteSize.Y)
 end
 
 local lastCallbackFunc

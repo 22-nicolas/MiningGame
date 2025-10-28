@@ -27,12 +27,12 @@ When the player gains Items/Materials they get displayed by the `src/ReplicatedS
 -Fortnite like weak spot system.
 
 ### Future Implementations
--Fixing hotbar bugs
--I`m not very pleased with some parts of the Module scripts that handle player UI, they are hard to read and are not error proof. I will need to clean up my code
--Finishing UI functionality
--Crafting system
--NPCs
--Auction House
+- Fixing hotbar bugs
+- I`m not very pleased with some parts of the Module scripts that handle player UI, they are hard to read and are not error proof. I will need to clean up my code
+- Finishing UI functionality
+- Crafting system
+- NPCs
+- Auction House
 
 ### 🎬 Preview
 Here’s a short look at mining in action (loot notifications weren't on screen):
