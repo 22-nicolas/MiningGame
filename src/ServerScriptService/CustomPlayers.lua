@@ -34,7 +34,7 @@ function CustomPlayers.newPlayer(player: Player)
 		bag = {},
 		items = {},
 		equipment = {
-			hotbar = {}
+			hotbar = table.create(4, nil)
 		}
 	}
 	self.weakSpot = nil
@@ -105,10 +105,10 @@ function customPlayer:setHotbarSlot(item, slotNum)
 	--table.insert(self.inventory.equipment.hotbar, item)
 	if not self.inventory.equipment.hotbar[slotNum] then
 		--removes Item from previous slot
-		if Utils.isArray(origin) then 
-			table.remove(origin, pos)
+		if origin == "hotbar" then
+			self.inventory.equipment.hotbar[pos] = nil
 		else
-			origin[pos] = nil
+			table.remove(self.inventory.items, pos)
 		end
 		
 		self.inventory.equipment.hotbar[slotNum] = item
@@ -128,13 +128,13 @@ end
 function customPlayer:hasItem(item)
 	for i = 1, #self.inventory.items do
 		if Utils.matchTables(self.inventory.items[i], item) then
-			return i, self.inventory.items
+			return i, "items"
 		end
 	end
 	
 	for i, hotbarItem in pairs(self.inventory.equipment.hotbar) do
 		if Utils.matchTables(hotbarItem, item) then
-			return i, self.inventory.equipment.hotbar
+			return i, "hotbar"
 		end
 	end
 end
