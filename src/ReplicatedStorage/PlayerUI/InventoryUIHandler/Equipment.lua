@@ -42,23 +42,14 @@ function Equipment:update(equipData)
 	
 	
 	for i = 1, #self.Slots do
-		local slot = self:getHotbarSlot(i)
+		local slot = self.equipData.hotbar[i]
 		--if a item is held dont implement it into a slot
 		if self.playerUI.cursorItem.itemData and self.playerUI.cursorItem.heldItemOrigin == "hotbar" and Utils.matchTables(slot, self.playerUI.cursorItem.itemData) then
 			self.Slots[i]:setItem(nil)
 		else
-			--print(slot)
 			self.Slots[i]:setItem(slot)
 		end
 	end
-	--print(hotbar)
-end
-
---function is needed due to hotbar somtimes behaving as array and sometimes as dictionary
-function Equipment:getHotbarSlot(i: number)
-	if not self.equipData then return end
-	--print(self.equipData.hotbar)
-	return self.equipData.hotbar[i] or self.equipData.hotbar[tostring(i)]
 end
 
 
