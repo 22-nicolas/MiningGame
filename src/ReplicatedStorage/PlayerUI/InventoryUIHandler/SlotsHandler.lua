@@ -1,6 +1,5 @@
-local HttpService = game:GetService("HttpService")
 local equipedHotbar = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("equipedHotbar")
-
+local unequipedHotbar = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("unequipedHotbar")
 
 local SlotsHandler = {
 	clearImg = "rbxassetid://18662154",
@@ -9,7 +8,6 @@ local SlotsHandler = {
 	slotTransparency = 0.8,
 }
 
-
 --ITEMS INVENTORY SLOT
 local slot = {}
 slot.__index = slot
@@ -17,7 +15,7 @@ slot.__index = slot
 function SlotsHandler.newSlot(playerUI, ItemsInv, layoutOrderIndex: number)
 	local self = {}
 	setmetatable(self, slot)
-	
+
 	local slot = Instance.new("ImageButton")
 	slot.Image = SlotsHandler.slotTexture
 	slot.Size = UDim2.new(0.2, -7, 0, 0)
@@ -31,24 +29,23 @@ function SlotsHandler.newSlot(playerUI, ItemsInv, layoutOrderIndex: number)
 	UIAspectRatio.DominantAxis = Enum.DominantAxis.Width
 	UIAspectRatio.Parent = slot
 
-	local UIGradient  = Instance.new("UIGradient")
+	local UIGradient = Instance.new("UIGradient")
 	UIGradient.Color = ColorSequence.new(SlotsHandler.defaultSlotColor)
 	UIGradient.Transparency = NumberSequence.new(SlotsHandler.slotTransparency)
 	UIGradient.Parent = slot
 
-
 	local ImageLabel = Instance.new("ImageLabel")
 	ImageLabel.Image = SlotsHandler.clearImg
-	ImageLabel.Size = UDim2.new(1,0,1,0)
+	ImageLabel.Size = UDim2.new(1, 0, 1, 0)
 	ImageLabel.BackgroundTransparency = 1
 	ImageLabel.Active = false
 	ImageLabel.Parent = slot
 
 	slot.Parent = ItemsInv.ItemContainer
-	
+
 	self.Instance = slot
 	self.type = "inv"
-	
+
 	slot.MouseButton1Click:Connect(function()
 		playerUI.cursorItem:setItem(self, function(nextClickedSlot, item)
 			if nextClickedSlot.type == "hotbar" and item then
@@ -60,7 +57,9 @@ function SlotsHandler.newSlot(playerUI, ItemsInv, layoutOrderIndex: number)
 	slot.InputChanged:Connect(function(Input)
 		if Input.UserInputType == Enum.UserInputType.MouseMovement then
 			local item = self:getItem()
-			if not item then return end
+			if not item then
+				return
+			end
 			ItemsInv.tooltip:show(item)
 		end
 	end)
@@ -68,7 +67,9 @@ function SlotsHandler.newSlot(playerUI, ItemsInv, layoutOrderIndex: number)
 	slot.InputEnded:Connect(function(Input)
 		if Input.UserInputType == Enum.UserInputType.MouseMovement then
 			local item = self:getItem()
-			if not item then return end
+			if not item then
+				return
+			end
 			ItemsInv.tooltip:hide()
 		end
 	end)
@@ -76,14 +77,14 @@ function SlotsHandler.newSlot(playerUI, ItemsInv, layoutOrderIndex: number)
 	return self
 end
 
-function slot:getItem()	
+function slot:getItem()
 	return self.item
 end
 
 function slot:setItem(item)
 	local itemImg = self.Instance:FindFirstChildOfClass("ImageLabel")
 	local UIGradient = self.Instance:FindFirstChildOfClass("UIGradient")
-	
+
 	if not item then
 		itemImg.Image = SlotsHandler.clearImg
 		UIGradient.Color = ColorSequence.new(SlotsHandler.defaultSlotColor)
@@ -91,7 +92,6 @@ function slot:setItem(item)
 		itemImg.Image = item.img
 		UIGradient.Color = ColorSequence.new(item.rarity)
 	end
-
 
 	self.item = item
 end
@@ -101,26 +101,25 @@ local hotbarSlot = {}
 hotbarSlot.__index = hotbarSlot
 
 function SlotsHandler.newHotbarSlot(playerUI, UIelement: ImageButton)
-	
 	local self = {}
 	setmetatable(self, hotbarSlot)
-	
+
 	self.Instance = UIelement
 	self.slotNum = UIelement.LayoutOrder
 	self.playerUI = playerUI
 	self.type = "hotbar"
-	
+
 	UIelement.MouseButton1Click:Connect(function()
 		playerUI.cursorItem:setItem(self, function(nextClickedSlot, item)
 			if nextClickedSlot.type == "hotbar" and item then
 				equipedHotbar:FireServer(item, nextClickedSlot.slotNum)
 			end
 			if nextClickedSlot.type == "inv" and item then
-				--TODO
+				unequipedHotbar:FireServer(item, self.slotNum)
 			end
 		end)
 	end)
-	
+
 	return self
 end
 
@@ -137,11 +136,10 @@ function hotbarSlot:setItem(item)
 		UIGradient.Color = ColorSequence.new(item.rarity)
 	end
 
-
 	self.item = item
 end
 
-function hotbarSlot:getItem()	
+function hotbarSlot:getItem()
 	return self.item
 end
 
