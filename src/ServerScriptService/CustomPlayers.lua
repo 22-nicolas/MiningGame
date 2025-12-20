@@ -1,14 +1,13 @@
 local Utils = require(game.ReplicatedStorage:WaitForChild("Utils"))
 local Items = require(game.ReplicatedStorage:WaitForChild("Items"))
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local HTTPService = game:GetService("HttpService")
 
 local bagUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("bagUpdate")
 local invUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("invUpdate")
 local equipmentUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("equipmentUpdate")
+local cursorUpdate = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("cursorUpdate")
 local lootNotification = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("lootNotification")
-local equipedHotbar = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("equipedHotbar")
-local unequipedHotbar = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("unequipedHotbar")
+local slotClick = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("slotClick")
 local reqStats = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("reqStats")
 
 local CustomPlayers = {}
@@ -37,6 +36,7 @@ function CustomPlayers.newPlayer(player: Player)
 		equipment = {
 			hotbar = {},
 		},
+		cursorItem = { value = nil, key = "cursorItem" },
 	}
 	self.weakSpot = nil
 	self.result = nil
@@ -55,8 +55,8 @@ function CustomPlayers.newPlayer(player: Player)
 
 	CustomPlayers[player.UserId] = self
 
-	self:giveItem("admin_pick")
-	self:giveItem("rookie_pickaxe")
+	self:giveItem("admin_pick", 2)
+	self:giveItem("rookie_pickaxe", 2)
 	return self
 end
 
@@ -78,99 +78,100 @@ reqStats.OnServerEvent:Connect(function(player)
 	reqStats:FireClient(player, customPlayer.stats)
 end)
 
-equipedHotbar.OnServerEvent:Connect(function(player, item, slotNum)
+slotClick.OnServerEvent:Connect(function(player, slotItem, slotType, slotNum)
 	local customPlayer = CustomPlayers.getPlayer(player)
 	if not customPlayer then
 		warn("[CustomPlayers] Client requested invalid custom player. Player: " .. tostring(player.UserId))
 		return
 	end
 
-	customPlayer:removeItem(item)
+	local cursorItem = customPlayer.inventory.cursorItem
 
-	customPlayer:setHotbarSlot(item, slotNum)
+	if not slotItem and not cursorItem.value then
+		return
+	end
+
+	local slotContainer = customPlayer:getContainerFromId(slotType)
+
+	if not cursorItem.value then
+		--"Pick up" item
+		cursorItem.value = slotItem
+		customPlayer:removeItem(slotContainer, slotNum, false)
+	elseif not slotItem and cursorItem.value then
+		--Set item
+		customPlayer:addItemTo(slotType, cursorItem.value, slotNum, false)
+		cursorItem.value = nil
+	elseif slotItem and cursorItem.value then
+		--Swap
+		local cachedItem = cursorItem.value
+		cursorItem.value = slotItem
+		customPlayer:removeItem(slotContainer, slotNum, false) --remove is required, because addItemTo doesn't override it just adds for items inventory
+		customPlayer:addItemTo(slotType, cachedItem, slotNum, false)
+	end
+
+	cursorUpdate:FireClient(player, customPlayer.inventory.cursorItem.value)
+	invUpdate:FireClient(player, customPlayer.inventory.items)
+	equipmentUpdate:FireClient(player, customPlayer.inventory.equipment)
 end)
 
-function customPlayer:setHotbarSlot(item: table, slotNum: number)
-	if item and typeof(item) ~= "table" then
-		warn("[CustomPlayers] " .. typeof(item) .. " is not a valid type for item")
-		return
-	end
-	if not Utils.checkValue(slotNum, "number", "[CustomPlayers]") then
+function customPlayer:getContainerFromId(id: string)
+	return Utils.findKeyInNestedTable(self.inventory, id)
+end
+
+function customPlayer:addItemTo(containerId: string, item: table, slotNum: number, updateClient: boolean)
+	if not Utils.checkValue(containerId, "string", "[CustomPlayers]") then
 		return
 	end
 
-	if not self.inventory.equipment.hotbar[slotNum] then --set
-		self.inventory.equipment.hotbar[slotNum] = item
+	if not Utils.checkValue(item, "table", "[CustomPlayers]") then
+		return
+	end
+
+	if updateClient == nil then
+		updateClient = true
+	end
+
+	local container = self:getContainerFromId(containerId)
+
+	if not container then
+		warn("[CustomPlayers] No container found with id: " .. tostring(containerId))
+		return
+	end
+
+	if containerId == "cursorItem" then
+		container.value = item
+	elseif containerId == "items" then
+		self:giveItem(item, nil, updateClient)
 	else
-		--swap
+		container[tostring(slotNum)] = item
 	end
 
+	if not updateClient then
+		return
+	end
 	invUpdate:FireClient(self.player, self.inventory.items)
 	equipmentUpdate:FireClient(self.player, self.inventory.equipment)
+	cursorUpdate:FireClient(self.player, self.inventory.cursorItem.value)
 end
 
---- Removes an item from the player's inventory.
+--- Gives the specified item to the player.
 --- @overload fun(item: table)
-function customPlayer:removeItem(origin: table, pos: number)
-	if pos ~= nil then
-		-- Case 1: removeItem(origin, pos)
-		if Utils.isArray(origin) then
-			table.remove(origin, pos)
-		else
-			origin[pos] = nil
-		end
+function customPlayer:giveItem(id: string, amount: number, updateClient: boolean)
+	if updateClient == nil then
+		updateClient = true
+	end
+
+	-- Assign item data according to args passed
+	local item
+	if typeof(id) == "string" then
+		item = Items.getItemById(id)
 	else
-		-- Case 2: removeItem(item)
-		local item = origin
-		local pos, origin = self:hasItem(item)
-		if not pos then
-			warn(
-				"[CustomPlayers] Client tried equiping item he does not poses. Player: "
-					.. tostring(customPlayer.player.UserId)
-			)
-			return
-		end
-		self:removeItem(origin, pos)
-	end
-end
-
---Unelegant aproach due to being hardcoded!!! Might want to change later.
-function customPlayer:hasItem(item)
-	for i = 1, #self.inventory.items do
-		if Utils.matchTables(self.inventory.items[i], item) then
-			return i, self.inventory.items
-		end
-	end
-
-	for i, hotbarItem in pairs(self.inventory.equipment.hotbar) do
-		if Utils.matchTables(hotbarItem, item) then
-			return i, self.inventory.equipment.hotbar
-		end
-	end
-end
-
-function customPlayer:getMouseRay()
-	return self.mouseRay
-end
-
-function customPlayer:addXP(amount: number)
-	if not Utils.checkValue(amount, "number", "[CustomPlayers]") then
-		return
-	end
-
-	self.stats.miningXP += amount
-end
-
-function customPlayer:giveItem(id: string, amount: number)
-	if not Utils.checkValue(id, "string", "[CustomPlayers]") then
-		return
+		item = id
 	end
 
 	if not amount then
 		amount = 1
 	end
-
-	local item = Items.getItemById(id)
 
 	if not item then
 		warn(
@@ -184,12 +185,14 @@ function customPlayer:giveItem(id: string, amount: number)
 	end
 
 	--Depending on if the item is a material or not, it will be stored in a different table and handeld differently.
-	if not Items.materials[id] then
+	if not Items.materials[item.id] then
 		for i = 1, amount do
 			if #self.inventory.items ~= self.stats.invSlots then
-				item.id = id
+				--item.id = id
 				table.insert(self.inventory.items, item)
-				invUpdate:FireClient(self.player, self.inventory.items)
+				if updateClient then
+					invUpdate:FireClient(self.player, self.inventory.items)
+				end
 			end
 		end
 	else
@@ -198,11 +201,65 @@ function customPlayer:giveItem(id: string, amount: number)
 		else
 			self.inventory.bag[id] = item
 		end
-
-		bagUpdate:FireClient(self.player, self.inventory.bag)
+		if updateClient then
+			bagUpdate:FireClient(self.player, self.inventory.bag)
+		end
 	end
 
-	lootNotification:FireClient(self.player, id, item, amount)
+	if updateClient then
+		lootNotification:FireClient(self.player, id, item, amount)
+	end
+end
+
+--- Removes an item from the player's inventory.
+--- @overload fun(item: table)
+function customPlayer:removeItem(origin: table, pos: number, updateClient: boolean)
+	if updateClient == nil then
+		updateClient = true
+	end
+
+	if not origin.rarity then
+		-- Case 1: removeItem(origin, pos)
+		if Utils.isArray(origin) then
+			table.remove(origin, pos)
+		else
+			origin[tostring(pos)] = nil
+		end
+
+		if not updateClient then
+			return
+		end
+		invUpdate:FireClient(self.player, self.inventory.items)
+		equipmentUpdate:FireClient(self.player, self.inventory.equipment)
+		cursorUpdate:FireClient(self.player, self.inventory.cursorItem.value)
+	else
+		-- Case 2: removeItem(item)
+		local item = origin
+		local pos, origin = self:hasItem(item)
+		if not pos then
+			warn(
+				"[CustomPlayers] Client tried removing item he does not poses. Player: " .. tostring(self.player.UserId)
+			)
+			return
+		end
+		self:removeItem(origin, pos)
+	end
+end
+
+function customPlayer:hasItem(item)
+	return Utils.findValueInNestedTable(self.inventory, item)
+end
+
+function customPlayer:getMouseRay()
+	return self.mouseRay
+end
+
+function customPlayer:addXP(amount: number)
+	if not Utils.checkValue(amount, "number", "[CustomPlayers]") then
+		return
+	end
+
+	self.stats.miningXP += amount
 end
 
 --WEAK SPOT

@@ -1,5 +1,5 @@
-local equipedHotbar = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("equipedHotbar")
-local unequipedHotbar = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("unequipedHotbar")
+local moveItem = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("moveItem")
+local slotClick = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("slotClick")
 
 local SlotsHandler = {
 	clearImg = "rbxassetid://18662154",
@@ -44,17 +44,14 @@ function SlotsHandler.newSlot(playerUI, ItemsInv, layoutOrderIndex: number)
 	slot.Parent = ItemsInv.ItemContainer
 
 	self.Instance = slot
-	self.type = "inv"
+	self.type = "items"
+	self.slotNum = layoutOrderIndex
 
-	slot.MouseButton1Click:Connect(function()
-		playerUI.cursorItem:setItem(self, function(nextClickedSlot, item)
-			if nextClickedSlot.type == "hotbar" and item then
-				equipedHotbar:FireServer(item, nextClickedSlot.slotNum)
-			end
-		end)
+	self.Instance.MouseButton1Click:Connect(function()
+		slotClick:FireServer(self:getItem(), self.type, self.slotNum)
 	end)
 
-	slot.InputChanged:Connect(function(Input)
+	self.Instance.InputChanged:Connect(function(Input)
 		if Input.UserInputType == Enum.UserInputType.MouseMovement then
 			local item = self:getItem()
 			if not item then
@@ -64,7 +61,7 @@ function SlotsHandler.newSlot(playerUI, ItemsInv, layoutOrderIndex: number)
 		end
 	end)
 
-	slot.InputEnded:Connect(function(Input)
+	self.Instance.InputEnded:Connect(function(Input)
 		if Input.UserInputType == Enum.UserInputType.MouseMovement then
 			local item = self:getItem()
 			if not item then
@@ -109,15 +106,8 @@ function SlotsHandler.newHotbarSlot(playerUI, UIelement: ImageButton)
 	self.playerUI = playerUI
 	self.type = "hotbar"
 
-	UIelement.MouseButton1Click:Connect(function()
-		playerUI.cursorItem:setItem(self, function(nextClickedSlot, item)
-			if nextClickedSlot.type == "hotbar" and item then
-				equipedHotbar:FireServer(item, nextClickedSlot.slotNum)
-			end
-			if nextClickedSlot.type == "inv" and item then
-				unequipedHotbar:FireServer(item, self.slotNum)
-			end
-		end)
+	self.Instance.MouseButton1Click:Connect(function()
+		slotClick:FireServer(self:getItem(), self.type, self.slotNum)
 	end)
 
 	return self

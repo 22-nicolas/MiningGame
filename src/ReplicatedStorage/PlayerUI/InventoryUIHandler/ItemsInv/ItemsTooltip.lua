@@ -4,8 +4,8 @@ local ItemsTooltip = {
 		miningFortune = "mining fortune",
 		swingRange = "swing range",
 		breakingPower = "breaking power",
-		npcSell = "npc sell"
-	}
+		npcSell = "npc sell",
+	},
 }
 
 local Utils = require(game.ReplicatedStorage:WaitForChild("Utils"))
@@ -15,7 +15,6 @@ local RunService = game:GetService("RunService")
 
 ItemsTooltip.__index = ItemsTooltip
 function ItemsTooltip.new(ItemsInv)
-
 	local self = {}
 	setmetatable(self, ItemsTooltip)
 
@@ -28,8 +27,7 @@ function ItemsTooltip.new(ItemsInv)
 	self.statsFrame = self.Instance:WaitForChild("stats")
 	self.statsPool = self:initStatsPool()
 	self.itemData = nil
-	
-	
+
 	return self
 end
 
@@ -38,7 +36,7 @@ function ItemsTooltip:initStatsPool()
 	for id, displayName in pairs(ItemsTooltip.itemStats) do
 		local stat = Instance.new("Frame")
 		stat.BackgroundTransparency = 1
-		stat.Size = UDim2.new(0,0,0,0)
+		stat.Size = UDim2.new(0, 0, 0, 0)
 		stat.AutomaticSize = Enum.AutomaticSize.XY
 		stat.Name = id
 		stat.Visible = false
@@ -54,11 +52,11 @@ function ItemsTooltip:initStatsPool()
 		local statName = Instance.new("TextLabel")
 		statName.LayoutOrder = 1
 		statName.BackgroundTransparency = 1
-		statName.Size = UDim2.new(0,0,0,0)
+		statName.Size = UDim2.new(0, 0, 0, 0)
 		statName.AutomaticSize = Enum.AutomaticSize.XY
 		statName.TextSize = 14
 		statName.TextColor3 = Color3.fromRGB(159, 159, 159)
-		statName.Text = displayName..":"
+		statName.Text = displayName .. ":"
 		statName.Font = Enum.Font.SourceSansBold
 		--statName.FontFace.Bold = true
 		statName.Name = "statName"
@@ -67,7 +65,7 @@ function ItemsTooltip:initStatsPool()
 		local statValue = Instance.new("TextLabel")
 		statValue.LayoutOrder = 2
 		statValue.BackgroundTransparency = 1
-		statValue.Size = UDim2.new(0,0,0,0)
+		statValue.Size = UDim2.new(0, 0, 0, 0)
 		statValue.AutomaticSize = Enum.AutomaticSize.XY
 		statValue.TextSize = 14
 		statValue.TextColor3 = Color3.fromRGB(159, 159, 159)
@@ -87,12 +85,22 @@ end
 function ItemsTooltip:updatePos()
 	local playerUI = self.playerUI
 	local ItemsInvInstance = self.ItemsInv.Instance
-	self.Instance.Position = UDim2.new(0, playerUI.mouse.X - ItemsInvInstance.AbsolutePosition.X + 14, 0, playerUI.mouse.Y - ItemsInvInstance.AbsolutePosition.Y + 10)
+	self.Instance.Position = UDim2.new(
+		0,
+		playerUI.mouse.X - ItemsInvInstance.AbsolutePosition.X + 14,
+		0,
+		playerUI.mouse.Y - ItemsInvInstance.AbsolutePosition.Y + 10
+	)
 end
 
-function ItemsTooltip:show(item) 
-	if self.itemData == item then return end
-	
+function ItemsTooltip:show(item)
+	if self.playerUI.cursorItem.itemData then
+		return
+	end
+	if self.itemData == item then
+		return
+	end
+
 	self.itemData = item
 	self.Instance.description.Text = item.description
 	self.Instance.displayName.Text = item.displayName
