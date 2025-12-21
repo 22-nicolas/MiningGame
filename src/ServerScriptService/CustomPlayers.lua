@@ -59,7 +59,8 @@ function CustomPlayers.newPlayer(player: Player)
 	CustomPlayers[player.UserId] = self
 
 	self:giveItem("admin_pick", 2)
-	self:giveItem("rookie_pickaxe", 30)
+	self:giveItem("rookie_pickaxe", 2)
+	self:giveItem("stackableTestItem", 3)
 	return self
 end
 
@@ -102,7 +103,7 @@ slotClick.OnServerEvent:Connect(function(player, slotItem, slotType, slotNum)
 	if not cursorItem.value then
 		--"Pick up" item
 		cursorItem.value = slotItem
-		customPlayer:removeItem(slotContainer, slotNum, false)
+		customPlayer:removeItem(slotContainer, slotNum, slotItem.amount, false)
 	elseif not slotItem and cursorItem.value then
 		--Set item
 		customPlayer:addItemTo(slotType, cursorItem.value, slotNum, false)
@@ -111,9 +112,10 @@ slotClick.OnServerEvent:Connect(function(player, slotItem, slotType, slotNum)
 		--Swap
 		local cachedItem = cursorItem.value
 		cursorItem.value = slotItem
-		customPlayer:removeItem(slotContainer, slotNum, false) --remove is required, because addItemTo doesn't override it just adds for items inventory
+		customPlayer:removeItem(slotContainer, slotNum, slotItem.amount, false) --remove is required, because addItemTo doesn't override it just adds for items inventory
 		customPlayer:addItemTo(slotType, cachedItem, slotNum, false)
 	end
+	print(cursorItem.value)
 
 	cursorUpdate:FireClient(player, customPlayer.inventory.cursorItem.value)
 	invUpdate:FireClient(player, customPlayer.inventory.items)
@@ -218,12 +220,9 @@ function customPlayer:giveItem(id: string, amount: number, updateClient: boolean
 	local item
 	if typeof(id) == "string" then
 		item = Items.getItemById(id)
+		item.amount = amount
 	else
 		item = id
-	end
-
-	if not amount then
-		amount = 1
 	end
 
 	if not item then
@@ -240,16 +239,37 @@ function customPlayer:giveItem(id: string, amount: number, updateClient: boolean
 
 	--Depending on if the item is a material or not, it will be stored in a different table and handeld differently.
 	if not Items.materials[item.id] then
-		for i = 1, amount do
-			if #self.inventory.items ~= self.stats.invSlots then
-				--item.id = id
-				table.insert(self.inventory.items, item)
-				if updateClient then
-					invUpdate:FireClient(self.player, self.inventory.items)
+		if #self.inventory.items + item.amount ~= self.stats.invSlots then
+			--check if item stacks
+			if item.stackable then
+				--find item in itemsInv
+				local found = false
+				for invId, invItem in pairs(self.inventory.items) do
+					if invId == item.id then
+						invItem.amount += item.amount --add to existing value
+						found = true
+						break
+					end
+				end
+				--if didn't already exist add
+				if not found then
+					item.amount = item.amount
+					table.insert(self.inventory.items, item)
 				end
 			else
-				--TODO: Drop
+				--if doesnt stack add one by one
+				for i = 1, item.amount do
+					local singleAmountItem = table.clone(item)
+					singleAmountItem.amount = 1
+					table.insert(self.inventory.items, singleAmountItem)
+				end
 			end
+		else
+			--drop
+		end
+		if updateClient then
+			invUpdate:FireClient(self.player, self.inventory.items)
+			print(self.inventory.items)
 		end
 	else
 		if self.inventory.bag[id] then
@@ -269,7 +289,7 @@ end
 
 --- Removes an item from the player's inventory.
 --- @overload fun(item: table)
-function customPlayer:removeItem(origin: table, pos: number, updateClient: boolean)
+function customPlayer:removeItem(origin: table, pos: number, amount: number, updateClient: boolean)
 	if updateClient == nil then
 		updateClient = true
 	end
@@ -277,9 +297,17 @@ function customPlayer:removeItem(origin: table, pos: number, updateClient: boole
 	if not origin.rarity then
 		-- Case 1: removeItem(origin, pos)
 		if Utils.isArray(origin) then
-			table.remove(origin, pos)
+			if origin[pos].amount <= amount then
+				table.remove(origin, pos)
+			else
+				origin[pos].amount -= amount
+			end
 		else
-			origin[tostring(pos)] = nil
+			if origin[tostring(pos)].amount <= amount then
+				origin[tostring(pos)] = nil
+			else
+				origin[tostring(pos)].amount -= amount
+			end
 		end
 
 		if not updateClient then
@@ -299,7 +327,7 @@ function customPlayer:removeItem(origin: table, pos: number, updateClient: boole
 			)
 			return
 		end
-		self:removeItem(origin, pos)
+		self:removeItem(origin, pos, item.amount, updateClient)
 	end
 end
 

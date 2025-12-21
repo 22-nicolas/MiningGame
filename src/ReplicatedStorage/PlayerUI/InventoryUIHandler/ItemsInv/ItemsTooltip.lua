@@ -108,10 +108,12 @@ function ItemsTooltip:show(item)
 	for _, stat in pairs(self.statsPool) do
 		stat.Visible = false
 	end
-	for i = 1, #item.displayedStats do
-		local stat = self.statsPool[item.displayedStats[i]]
-		stat.statValue.Text = item[item.displayedStats[i]]
-		stat.Visible = true
+	if item.displayedStats then
+		for i = 1, #item.displayedStats do
+			local stat = self.statsPool[item.displayedStats[i]]
+			stat.statValue.Text = item[item.displayedStats[i]]
+			stat.Visible = true
+		end
 	end
 	self.Instance.Visible = true
 end

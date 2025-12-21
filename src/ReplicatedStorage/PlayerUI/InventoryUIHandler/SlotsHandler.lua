@@ -40,6 +40,14 @@ function SlotsHandler.newSlot(playerUI, ItemsInv, layoutOrderIndex: number)
 	ImageLabel.Active = false
 	ImageLabel.Parent = slot
 
+	local amountDisplay = Instance.new("TextLabel")
+	amountDisplay.Name = "amountDisplay"
+	amountDisplay.Text = "0"
+	amountDisplay.Size = UDim2.new(0.2, 0, 0.2, 0)
+	amountDisplay.Position = UDim2.new(0, 0, 0, 0)
+	amountDisplay.Visible = false
+	amountDisplay.Parent = slot
+
 	slot.Parent = ItemsInv.ItemContainer
 
 	self.Instance = slot
@@ -80,13 +88,20 @@ end
 function slot:setItem(item)
 	local itemImg = self.Instance:FindFirstChildOfClass("ImageLabel")
 	local UIGradient = self.Instance:FindFirstChildOfClass("UIGradient")
+	local amountDisplay = self.Instance:FindFirstChild("amountDisplay")
 
 	if not item then
 		itemImg.Image = SlotsHandler.clearImg
 		UIGradient.Color = ColorSequence.new(SlotsHandler.defaultSlotColor)
+		amountDisplay.Text = "0"
+		amountDisplay.Visible = false
 	else
 		itemImg.Image = item.img
 		UIGradient.Color = ColorSequence.new(item.rarity)
+		amountDisplay.Text = tostring(item.amount)
+		if item.amount > 1 then
+			amountDisplay.Visible = true
+		end
 	end
 
 	self.item = item
@@ -115,14 +130,20 @@ end
 function hotbarSlot:setItem(item)
 	local itemImg = self.Instance:FindFirstChildOfClass("ImageLabel")
 	local UIGradient = self.Instance:FindFirstChildOfClass("UIGradient")
+	local amountDisplay = self.Instance:FindFirstChild("amountDisplay")
 
 	if not item then
 		itemImg.Image = SlotsHandler.clearImg
 		UIGradient.Color = ColorSequence.new(SlotsHandler.defaultSlotColor)
+		amountDisplay.Text = "0"
+		amountDisplay.Visible = false
 	else
-		--print(self.slotNum)
 		itemImg.Image = item.img
 		UIGradient.Color = ColorSequence.new(item.rarity)
+		amountDisplay.Text = tostring(item.amount)
+		if item.amount > 1 then
+			amountDisplay.Visible = true
+		end
 	end
 
 	self.item = item

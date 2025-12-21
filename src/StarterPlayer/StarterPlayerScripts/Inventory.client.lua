@@ -28,6 +28,7 @@ equipmentUpdate.OnClientEvent:Connect(function(equipmentData)
 end)
 
 lootNotification.OnClientEvent:Connect(function(item, deltaAmount)
+	print(item)
 	playerUI.lootNotifications:addNotification(item, deltaAmount)
 end)
 

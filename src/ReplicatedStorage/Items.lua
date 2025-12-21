@@ -47,6 +47,18 @@ local Items = {
 		},
 	},
 
+	other = {
+		stackableTestItem = {
+			id = "stackableTestItem",
+			displayName = "Stackable Test Item",
+			rarity = Rarities.uncommon,
+			img = "http://www.roblox.com/asset/?id=258161647",
+			amount = 1,
+			description = "Test item",
+			stackable = true,
+		},
+	},
+
 	materials = {
 		coal = {
 			id = "coal",
