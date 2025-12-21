@@ -6,6 +6,7 @@ local bagUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("bagU
 local invUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("invUpdate")
 local equipmentUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("equipmentUpdate")
 local cursorUpdate = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("cursorUpdate")
+local cancelCursorItem = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("cancelCursorItem")
 local lootNotification = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("lootNotification")
 local slotClick = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("slotClick")
 local reqStats = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("reqStats")
@@ -114,6 +115,25 @@ slotClick.OnServerEvent:Connect(function(player, slotItem, slotType, slotNum)
 	equipmentUpdate:FireClient(player, customPlayer.inventory.equipment)
 end)
 
+cancelCursorItem.OnServerEvent:Connect(function(player)
+	local customPlayer = CustomPlayers.getPlayer(player)
+	if not customPlayer then
+		warn("[CustomPlayers] Client requested invalid custom player. Player: " .. tostring(player.UserId))
+		return
+	end
+
+	local cursorItem = customPlayer.inventory.cursorItem
+
+	if not cursorItem.value then
+		return
+	end
+
+	customPlayer:giveItem(cursorItem.value)
+	cursorItem.value = nil
+
+	cursorUpdate:FireClient(player, cursorItem.value)
+end)
+
 function customPlayer:getContainerFromId(id: string)
 	return Utils.findKeyInNestedTable(self.inventory, id)
 end
@@ -179,7 +199,8 @@ function customPlayer:giveItem(id: string, amount: number, updateClient: boolean
 				.. "No item for id: "
 				.. tostring(id)
 				.. ". while trying to give an item to player "
-				.. tostring(self.player.UserId)
+				.. tostring(self.player.UserId),
+			debug.traceback()
 		)
 		return
 	end
@@ -193,6 +214,8 @@ function customPlayer:giveItem(id: string, amount: number, updateClient: boolean
 				if updateClient then
 					invUpdate:FireClient(self.player, self.inventory.items)
 				end
+			else
+				--TODO: Drop
 			end
 		end
 	else

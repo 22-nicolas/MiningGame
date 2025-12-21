@@ -1,4 +1,4 @@
-local canceledCursorItem = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("canceledCursorItem")
+local cancelCursorItem = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("cancelCursorItem")
 local cursorUpdate = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("cursorUpdate")
 
 local CursorItem = {}
@@ -10,8 +10,6 @@ function CursorItem.new(playerUI)
 
 	self.Instance = playerUI.InventoryFrame:WaitForChild("CursorItem")
 	self.itemData = nil
-	self.heldItemOrigin = nil
-	self.callback = nil
 	self.playerUI = playerUI
 
 	cursorUpdate.OnClientEvent:Connect(function(itemData)
@@ -28,15 +26,11 @@ function CursorItem.new(playerUI)
 end
 
 function CursorItem:cancel()
-	self.callback = nil
 	self.itemData = nil
 	self.heldItemOrigin = nil
 	self.Instance.Image = self.playerUI.ItemsInv.SlotsHandler.clearImg
 
-	canceledCursorItem:FireServer()
-
-	--self.playerUI.ItemsInv:update()
-	--self.playerUI.Equipment:update()
+	cancelCursorItem:FireServer()
 end
 
 return CursorItem

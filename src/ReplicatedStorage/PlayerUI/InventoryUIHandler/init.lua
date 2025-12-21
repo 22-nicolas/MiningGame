@@ -160,7 +160,6 @@ function playerUI:setUpTabs()
 	self.ItemsBtn.MouseButton1Click:Connect(function()
 		self.Bag.Instance.Visible = false
 		self.ItemsInv.Instance.Visible = true
-		self.cursorItem:cancel()
 	end)
 end
 
