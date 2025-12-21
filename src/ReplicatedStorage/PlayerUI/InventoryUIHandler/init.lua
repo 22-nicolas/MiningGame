@@ -43,6 +43,10 @@ function InventoryUIHandler.initPlayerUI(player: Player, mouse: PlayerMouse)
 	self.InvBtn = self.DefaultGui:WaitForChild("ImageButton")
 	self.InvBtn.Activated:Connect(function()
 		self.InventoryGui.Enabled = not self.InventoryGui.Enabled
+		--if closed cancel cursorItem
+		if not self.InventoryGui.Enabled then
+			self.cursorItem:cancel()
+		end
 	end)
 
 	self.InventoryFrame.Changed:Connect(function(property)

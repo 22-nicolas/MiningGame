@@ -2,19 +2,19 @@ local LootNotifications = {}
 LootNotifications.__index = LootNotifications
 
 function LootNotifications.new(playerUI)
-	
 	local self = {}
 	setmetatable(self, LootNotifications)
-	
+
 	self.Instance = playerUI.DefaultGui:WaitForChild("lootNotifications")
 	self.notificationsList = {}
 	self.playerUI = playerUI
-	
+
 	return self
 end
 
-function LootNotifications:addNotification(id, item, deltaAmount)
+function LootNotifications:addNotification(item, deltaAmount)
 	local found = false
+	local id = item.id
 	--If item already exists, update notification
 	for i, existingItem in pairs(self.notificationsList) do
 		if existingItem.id == id then
@@ -33,7 +33,6 @@ function LootNotifications:addNotification(id, item, deltaAmount)
 	--Else create a new notification
 	if not found then
 		item.amount = deltaAmount
-		item.id = id
 		item.tick = tick()
 		task.delay(5, function()
 			self:removeNotification(item)
@@ -46,7 +45,9 @@ end
 
 function LootNotifications:removeNotification(item)
 	local index = table.find(self.notificationsList, item)
-	if not index then return end
+	if not index then
+		return
+	end
 	if tick() - item.tick >= 5 then
 		table.remove(self.notificationsList, index)
 		self:update()
@@ -56,7 +57,7 @@ end
 function LootNotifications:update()
 	local children = self.Instance:GetChildren()
 	for _, child in pairs(children) do
-		if child.ClassName ~= "UIListLayout" then 
+		if child.ClassName ~= "UIListLayout" then
 			child:Destroy()
 		end
 	end
@@ -110,7 +111,7 @@ function LootNotifications:initNotificationUI(i, item)
 	textLabel.FontFace.Weight = Enum.FontWeight.Bold
 	textLabel.BackgroundTransparency = 1
 	textLabel.Name = item.displayName
-	textLabel.Text = prefix..tostring(item.amount).." "..item.displayName
+	textLabel.Text = prefix .. tostring(item.amount) .. " " .. item.displayName
 	textLabel.Position = UDim2.new(0.3, 0, 0, 0)
 	textLabel.Size = UDim2.new(0.7, 0, 1, 0)
 	textLabel.LayoutOrder = 2

@@ -1,6 +1,7 @@
 local Utils = require(game.ReplicatedStorage:WaitForChild("Utils"))
 local Items = require(game.ReplicatedStorage:WaitForChild("Items"))
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
 
 local bagUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("bagUpdate")
 local invUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("invUpdate")
@@ -9,6 +10,7 @@ local cursorUpdate = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChi
 local cancelCursorItem = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("cancelCursorItem")
 local lootNotification = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("lootNotification")
 local slotClick = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("slotClick")
+local dropItem = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("dropItem")
 local reqStats = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("reqStats")
 
 local CustomPlayers = {}
@@ -57,7 +59,7 @@ function CustomPlayers.newPlayer(player: Player)
 	CustomPlayers[player.UserId] = self
 
 	self:giveItem("admin_pick", 2)
-	self:giveItem("rookie_pickaxe", 2)
+	self:giveItem("rookie_pickaxe", 30)
 	return self
 end
 
@@ -66,13 +68,17 @@ function CustomPlayers.getPlayer(player: Player)
 		return
 	end
 
-	return CustomPlayers[player.UserId]
+	local customPlayer = CustomPlayers[player.UserId]
+	if not customPlayer then
+		warn("[CustomPlayers] Client requested invalid custom player. Player: " .. tostring(player.UserId))
+		return
+	end
+	return customPlayer
 end
 
 reqStats.OnServerEvent:Connect(function(player)
 	local customPlayer = CustomPlayers.getPlayer(player)
 	if not customPlayer then
-		warn("[CustomPlayers] Client requested invalid custom player. Player: " .. tostring(player.UserId))
 		return
 	end
 
@@ -82,7 +88,6 @@ end)
 slotClick.OnServerEvent:Connect(function(player, slotItem, slotType, slotNum)
 	local customPlayer = CustomPlayers.getPlayer(player)
 	if not customPlayer then
-		warn("[CustomPlayers] Client requested invalid custom player. Player: " .. tostring(player.UserId))
 		return
 	end
 
@@ -118,7 +123,6 @@ end)
 cancelCursorItem.OnServerEvent:Connect(function(player)
 	local customPlayer = CustomPlayers.getPlayer(player)
 	if not customPlayer then
-		warn("[CustomPlayers] Client requested invalid custom player. Player: " .. tostring(player.UserId))
 		return
 	end
 
@@ -132,6 +136,35 @@ cancelCursorItem.OnServerEvent:Connect(function(player)
 	cursorItem.value = nil
 
 	cursorUpdate:FireClient(player, cursorItem.value)
+end)
+
+dropItem.OnServerEvent:Connect(function(player, item)
+	local customPlayer = CustomPlayers.getPlayer(player)
+	if not customPlayer then
+		return
+	end
+	if not customPlayer:hasItem(item) then
+		warn(
+			"[CustomPlayers] Client tried dropping item they don't have. Player: " .. tostring(player.UserId) .. ".",
+			debug.traceback()
+		)
+		return
+	end
+
+	if not item.amount then
+		item.amount = 1
+	end
+
+	--prioritize cursor item
+	if Utils.matchTables(item, customPlayer.inventory.cursorItem.value) then
+		customPlayer.inventory.cursorItem.value = nil
+		cursorUpdate:FireClient(player, customPlayer.inventory.cursorItem.value)
+	else
+		customPlayer:removeItem(item)
+	end
+	lootNotification:FireClient(player, item, -item.amount)
+
+	--drop logic
 end)
 
 function customPlayer:getContainerFromId(id: string)
@@ -230,7 +263,7 @@ function customPlayer:giveItem(id: string, amount: number, updateClient: boolean
 	end
 
 	if updateClient then
-		lootNotification:FireClient(self.player, id, item, amount)
+		lootNotification:FireClient(self.player, item, amount)
 	end
 end
 
@@ -261,7 +294,8 @@ function customPlayer:removeItem(origin: table, pos: number, updateClient: boole
 		local pos, origin = self:hasItem(item)
 		if not pos then
 			warn(
-				"[CustomPlayers] Client tried removing item he does not poses. Player: " .. tostring(self.player.UserId)
+				"[CustomPlayers] Client tried removing item he does not poses. Player: " .. tostring(self.player.UserId),
+				debug.traceback()
 			)
 			return
 		end

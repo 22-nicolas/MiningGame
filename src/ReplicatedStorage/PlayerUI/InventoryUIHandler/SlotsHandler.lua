@@ -1,4 +1,3 @@
-local moveItem = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("moveItem")
 local slotClick = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("slotClick")
 
 local SlotsHandler = {
