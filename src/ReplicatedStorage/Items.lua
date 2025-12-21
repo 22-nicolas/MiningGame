@@ -90,7 +90,7 @@ function Items.getItemById(id: string)
 		if typeof(categories) ~= "function" then
 			for itemId, itemData in pairs(categories) do
 				if itemId == id then
-					return itemData
+					return table.clone(itemData)
 				end
 			end
 		end

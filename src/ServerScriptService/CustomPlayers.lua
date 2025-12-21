@@ -116,7 +116,6 @@ slotClick.OnServerEvent:Connect(function(player, slotItem, slotType, slotNum)
 		customPlayer:removeItem(slotContainer, slotNum, slotItem.amount, false) --remove is required, because addItemTo doesn't override it just adds for items inventory
 		customPlayer:addItemTo(slotType, cachedItem, slotNum, false)
 	end
-	print(cursorItem.value)
 
 	cursorUpdate:FireClient(player, customPlayer.inventory.cursorItem.value)
 	invUpdate:FireClient(player, customPlayer.inventory.items)
@@ -235,7 +234,7 @@ function customPlayer:giveItem(id: string, amount: number, updateClient: boolean
 		item = id
 		amount = item.amount
 	end
-	print(item)
+
 	if not item then
 		warn(
 			"[CustomPlayers] Error"
@@ -280,13 +279,12 @@ function customPlayer:giveItem(id: string, amount: number, updateClient: boolean
 		end
 		if updateClient then
 			invUpdate:FireClient(self.player, self.inventory.items)
-			print(self.inventory.items)
 		end
 	else
-		if self.inventory.bag[id] then
-			self.inventory.bag[id].amount += amount
+		if self.inventory.bag[item.id] then
+			self.inventory.bag[item.id].amount += item.amount
 		else
-			self.inventory.bag[id] = item
+			self.inventory.bag[item.id] = item
 		end
 		if updateClient then
 			bagUpdate:FireClient(self.player, self.inventory.bag)

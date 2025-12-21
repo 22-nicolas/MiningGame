@@ -16,6 +16,7 @@ local mouse = player:GetMouse()
 local playerUI = InventoryUIHandler.initPlayerUI(player, mouse)
 
 bagUpdate.OnClientEvent:Connect(function(bagData)
+	print(bagData)
 	playerUI.Bag:update(bagData)
 end)
 
@@ -28,7 +29,6 @@ equipmentUpdate.OnClientEvent:Connect(function(equipmentData)
 end)
 
 lootNotification.OnClientEvent:Connect(function(item, deltaAmount)
-	print(item, deltaAmount)
 	playerUI.lootNotifications:addNotification(item, deltaAmount)
 end)
 
