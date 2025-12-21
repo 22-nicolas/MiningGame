@@ -28,7 +28,7 @@ equipmentUpdate.OnClientEvent:Connect(function(equipmentData)
 end)
 
 lootNotification.OnClientEvent:Connect(function(item, deltaAmount)
-	print(item)
+	print(item, deltaAmount)
 	playerUI.lootNotifications:addNotification(item, deltaAmount)
 end)
 
@@ -53,6 +53,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 		end
 
 		if not clickedInventory and playerUI.cursorItem.itemData then
+			print(playerGui:GetGuiObjectsAtPosition(mousePos.X, mousePos.Y), clickedInventory)
 			dropItem:FireServer(playerUI.cursorItem.itemData, playerUI.cursorItem.itemData.amount)
 		end
 	end

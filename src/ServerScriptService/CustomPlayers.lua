@@ -1,5 +1,6 @@
 local Utils = require(game.ReplicatedStorage:WaitForChild("Utils"))
 local Items = require(game.ReplicatedStorage:WaitForChild("Items"))
+local DropHandler = require(game.ServerScriptService:WaitForChild("DropHandler"))
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
@@ -167,6 +168,15 @@ dropItem.OnServerEvent:Connect(function(player, item)
 	lootNotification:FireClient(player, item, -item.amount)
 
 	--drop logic
+	local character = player.Character
+	if not character then
+		return
+	end
+	local hrp = character:FindFirstChild("HumanoidRootPart")
+	if not hrp then
+		return
+	end
+	DropHandler.dropItem(hrp, item)
 end)
 
 function customPlayer:getContainerFromId(id: string)
@@ -223,8 +233,9 @@ function customPlayer:giveItem(id: string, amount: number, updateClient: boolean
 		item.amount = amount
 	else
 		item = id
+		amount = item.amount
 	end
-
+	print(item)
 	if not item then
 		warn(
 			"[CustomPlayers] Error"
@@ -290,6 +301,11 @@ end
 --- Removes an item from the player's inventory.
 --- @overload fun(item: table)
 function customPlayer:removeItem(origin: table, pos: number, amount: number, updateClient: boolean)
+	if not self:hasItem(origin[tostring(pos)], amount) and not self:hasItem(origin[pos], amount) then
+		warn("[CustomPlayers] Tried removing item that player doesn't have.", debug.traceback())
+		return
+	end
+
 	if updateClient == nil then
 		updateClient = true
 	end
@@ -331,8 +347,28 @@ function customPlayer:removeItem(origin: table, pos: number, amount: number, upd
 	end
 end
 
-function customPlayer:hasItem(item)
-	return Utils.findValueInNestedTable(self.inventory, item)
+--- Finds item in inventory. If amount is given only return true if that amount is of items is present.
+--- @overload fun(item: table)
+function customPlayer:hasItem(item: table, amount: number)
+	if not item then
+		return false
+	end
+
+	for k, v in pairs(self.inventory) do
+		if v.id == item.id and v.amount >= amount then
+			return true
+		end
+
+		-- Recurse into nested tables
+		if typeof(v) == "table" then
+			local found = Utils.findValueInNestedTable(v, item)
+			if found ~= nil then
+				return found --true
+			end
+		end
+	end
+
+	return false
 end
 
 function customPlayer:getMouseRay()
