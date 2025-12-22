@@ -4,13 +4,12 @@ local RunService = game:GetService("RunService")
 local stopedMining = game.ReplicatedStorage:WaitForChild("Mining"):WaitForChild("StopMining")
 local CustomPlayers = require(game.ServerScriptService:WaitForChild("CustomPlayers"))
 
-
 local MiningHandler = {
 	rarity_influence = 1,
 	baseDrops = 1,
 	plusDropsPerFortune = 1,
 	weakSpotBonus = 10,
-	
+
 	nodes = {},
 
 	--ATRIBUTES FOR ORES
@@ -21,31 +20,28 @@ local MiningHandler = {
 		toughness = 1,
 		miningDifficulty = 0.05,
 		xp = 1.5,
-		dropTable =  {
+		dropTable = {
 			stone = 4,
-			coal = 1
+			coal = 1,
 		},
-	},	
+	},
 }
 
 local Node = {}
 
 Node.__index = Node
 
-
-
 function MiningHandler.newNode(ResourceNode: Part)
-	
 	--ERROR CATHING/HANDLING
 	if not Utils.checkValue(ResourceNode, "Part", "[MiningHandler]", true) then
 		return
 	end
-	
+
 	local self = {}
 	setmetatable(self, Node)
-	
+
 	local ore = ResourceNode.Parent:GetAttribute("ore")
-	
+
 	--create random ID
 	local id
 	while true do
@@ -55,7 +51,7 @@ function MiningHandler.newNode(ResourceNode: Part)
 			break
 		end
 	end
-	
+
 	--ATTRIBUTES
 	self.instance = ResourceNode
 	self.oreData = MiningHandler[ore]
@@ -64,15 +60,15 @@ function MiningHandler.newNode(ResourceNode: Part)
 	self.miningPlayers = {}
 	self.time = 0
 	self.id = id
-	
 
-	
 	MiningHandler.nodes[id] = self
 	return self
 end
 
 function MiningHandler.getNode(block: Part)
-	if not Utils.checkValue(block, "Part", "[MiningHandler]", true) then return end
+	if not Utils.checkValue(block, "Part", "[MiningHandler]", true) then
+		return
+	end
 	for id, node in pairs(MiningHandler.nodes) do
 		if node.instance == block then
 			return node
@@ -98,23 +94,21 @@ RunService.Heartbeat:Connect(MiningHandler.centralizedMiningLoop)
 
 function Node:addMiningPlayer(player: Player, tool: Tool, wasMining: boolean)
 	--ERROR CATHING/HANDLING
-	if not Utils.checkValue(player, "Player", "[MiningHandler]", true) then return end
-	if not Utils.checkValue(tool, "Tool", "[MiningHandler]", true) then return end
-	
+	if not Utils.checkValue(player, "Player", "[MiningHandler]", true) then
+		return
+	end
+	if not Utils.checkValue(tool, "Tool", "[MiningHandler]", true) then
+		return
+	end
+
 	if not wasMining then
 		wasMining = false
 	end
-	
+
 	local customPlayer = CustomPlayers.getPlayer(player)
 
-	local toolExists = false
 	local toolId = tool:GetAttribute("id")
-	for item, _ in pairs(Items.miningTools) do
-		if tool:GetAttribute("id") == item then
-			toolExists = true
-			break
-		end
-	end
+	local toolExists = Items.miningTools[toolId] ~= nil
 
 	if not toolExists then
 		warn("[MiningHandler] Tool: " .. Utils.getPath(tool) .. " is not a valid mining tool")
@@ -134,15 +128,17 @@ function Node:addMiningPlayer(player: Player, tool: Tool, wasMining: boolean)
 	customPlayer.miningData = {
 		time = 0,
 		tool = tool,
-		wasMining = wasMining
+		wasMining = wasMining,
 	}
 
 	table.insert(self.miningPlayers, player)
 end
 
 function Node:removeMiningPlayer(player: Player)
-	if not Utils.checkValue(player, "Player", "[MiningHandler]", true) then return end
-	
+	if not Utils.checkValue(player, "Player", "[MiningHandler]", true) then
+		return
+	end
+
 	for i = 1, #self.miningPlayers do
 		if self.miningPlayers[i] == player then
 			table.remove(self.miningPlayers, i)
@@ -155,12 +151,13 @@ function Node:removeMiningPlayer(player: Player)
 			break
 		end
 	end
-
 end
 
 function Node:mine(player: Player, deltaTime: number)
-	if not Utils.checkValue(player, "Player", "[MiningHandler]", true) then return end
-	
+	if not Utils.checkValue(player, "Player", "[MiningHandler]", true) then
+		return
+	end
+
 	local customPlayer = CustomPlayers.getPlayer(player)
 	local tool = customPlayer.miningData.tool
 	local toolId = tool:GetAttribute("id")
@@ -172,7 +169,6 @@ function Node:mine(player: Player, deltaTime: number)
 		self:removeMiningPlayer(player)
 		return
 	end
-	
 
 	--check for already existing weakspot if so delete existing
 	--this part could potentially be obselete and never actually fire
@@ -180,49 +176,52 @@ function Node:mine(player: Player, deltaTime: number)
 		customPlayer.result = nil
 		customPlayer.weakSpot:deleteWeakSpot()
 	end
-	
+
 	--tries to find a random hit for weak spot
 	if not customPlayer.result then
-		
 		local params = RaycastParams.new()
 		params.FilterType = Enum.RaycastFilterType.Include
-		params.FilterDescendantsInstances = {self.instance}
-		
+		params.FilterDescendantsInstances = { self.instance }
+
 		--ups the tries to compensate
 		local tries
 		if customPlayer.miningData.wasMining then
 			tries = 100
 		end
-		
+
 		customPlayer.result = self:camCast(customPlayer.mouseRay, params, toolData.swingRange, tries)
 		if not customPlayer.result and customPlayer.miningData.wasMining then
-			warn("camCast() timed out => no weak spot created for player: "..player.UserId)
+			warn("camCast() timed out => no weak spot created for player: " .. player.UserId)
 		end
 	end
-	
+
 	local totalSpeed = toolData.miningSpeed + customPlayer.stats.miningSpeed
-	local mineRate = 0.9886*math.pow(2.718, -0.002 * totalSpeed)+ self.oreData.miningDifficulty
-	
+	local mineRate = 0.9886 * math.pow(2.718, -0.002 * totalSpeed) + self.oreData.miningDifficulty
+
 	if customPlayer.miningData.wasMining then
 		customPlayer.miningData.time = mineRate
 		customPlayer.miningData.wasMining = false
 	end
-	
+
 	if customPlayer.miningData.time >= mineRate then
 		customPlayer.miningData.time -= mineRate
-		
+
 		--Health
 		self.health = math.max(0, self.health - 1)
 
 		--CHECK FOR HIT
-		local hitResult = MiningHandler.checkHit(player, {game.Workspace.ResourceNodes:GetChildren()}, toolData.swingRange)
+		local hitResult =
+			MiningHandler.checkHit(player, { game.Workspace.ResourceNodes:GetChildren() }, toolData.swingRange)
 		if not hitResult then
 			self:removeMiningPlayer(player)
 			return
 		end
-		if hitResult.Instance ~= self.instance and (not customPlayer.weakSpot or hitResult.Instance ~= customPlayer.weakSpot.raycastCopy) then 
-			self:removeMiningPlayer(player)--WARNING: Node:removeMiningPlayer(player) failing could be potentialy game breaking and should be handled properly in the future
-			
+		if
+			hitResult.Instance ~= self.instance
+			and (not customPlayer.weakSpot or hitResult.Instance ~= customPlayer.weakSpot.raycastCopy)
+		then
+			self:removeMiningPlayer(player) --WARNING: Node:removeMiningPlayer(player) failing could be potentialy game breaking and should be handled properly in the future
+
 			--Because of the raycast params being ResourceNodes and because we already checked for no results the player must be looking at a new node.
 			--update to new node and ping client.
 			local node = MiningHandler.getNode(hitResult.Instance)
@@ -237,26 +236,24 @@ function Node:mine(player: Player, deltaTime: number)
 		if customPlayer.weakSpot and hitResult.Instance == customPlayer.weakSpot.raycastCopy then
 			weakSpotBonus = MiningHandler.weakSpotBonus * customPlayer.stats.weakSpotBonusMultiplier -- activate weak spot bonus
 			customPlayer.weakSpot:deleteWeakSpot()
-			
+
 			--creates next one if result
 			if customPlayer.result and 0 < self.health then
 				CustomPlayers.newWeakSpot(self, customPlayer, customPlayer.result, hitResult)
 			end
 		end
-		
+
 		--create weak spot
 		if 0 < self.health then
 			if customPlayer.result and not customPlayer.weakSpot then
-			CustomPlayers.newWeakSpot(self, customPlayer, customPlayer.result, hitResult)
+				CustomPlayers.newWeakSpot(self, customPlayer, customPlayer.result, hitResult)
 			end
-			
+
 			if not customPlayer.weakSpot then
 				warn("[MiningHandler] camCast/result timed out failed to create weak spot.")
 			end
 		end
-		
 
-		
 		--Particles
 		local ParticleEmitter
 		local ParticlePart
@@ -270,7 +267,7 @@ function Node:mine(player: Player, deltaTime: number)
 			warn("[MiningHandler] Failed to find ParticleEmitter of Node: " .. Utils.getPath(self.instance))
 			return
 		end
-		
+
 		ParticlePart.Position = hitResult.Position
 		ParticleEmitter.Enabled = true
 
@@ -283,29 +280,28 @@ function Node:mine(player: Player, deltaTime: number)
 
 		--Sound
 		if string.lower(toolData.type) == "pickaxe" then
-			local index = math.random(1,4)
-			local soundName = "Pickaxe Strike 0"..tostring(index)
+			local index = math.random(1, 4)
+			local soundName = "Pickaxe Strike 0" .. tostring(index)
 			local Sound = workspace.ResourceNodes.sfx.pickaxe:FindFirstChild(soundName)
 
 			Sound:Play()
 		end
-		
+
 		--Player rewards
-		
+
 		--XP
 		customPlayer:addXP(self.oreData.xp)
-		
+
 		--Items
-		
-		
+
 		local totalFortune = toolData.miningFortune + customPlayer.stats.fortune + weakSpotBonus
-		local trueFortune = math.log(0.9*totalFortune+200, 1.8)-9.0141
+		local trueFortune = math.log(0.9 * totalFortune + 200, 1.8) - 9.0141
 		local adjustedTable = MiningHandler.getAdjustedTable(self.oreData.dropTable, trueFortune)
 		local loot = MiningHandler.dropLoot(adjustedTable, trueFortune)
 		for _, item in pairs(loot) do
 			customPlayer:giveItem(item, 1)
 		end
-		
+
 		--Destroy on health = 0
 		if self.health == 0 then
 			self.instance.BrickColor = BrickColor.new("Grey")
@@ -316,47 +312,54 @@ function Node:mine(player: Player, deltaTime: number)
 	end
 end
 
-
-
 function Node:regen(deltaTime: number)
 	if self.health == self.maxHealth then
 		return
 	end
-	
+
 	self.time += deltaTime
-	
+
 	if not (self.oreData.regenTime <= self.time) then
 		return
 	end
-	
+
 	if not (self.oreData.regenTime + self.oreData.regenRate <= self.time) then
 		return
 	end
-	
+
 	self.time -= self.oreData.regenRate
 
 	self.health = math.min(self.maxHealth, self.health + 1)
-	
+
 	if self.health > 0 then
 		self.instance.BrickColor = BrickColor.new("Black")
 	end
 end
 
 function Node:camCast(mouseRay: Ray, rayParams: RaycastParams, swingRange: number, tries: number, angle: number)
-	if not Utils.checkValue(mouseRay, "Ray", "[Utils]") then return end
-	if not Utils.checkValue(rayParams, "RaycastParams", "[Utils]") then return end
-	if not Utils.checkValue(swingRange, "number", "[Utils]") then return end
-	
-	if not tries then tries = 10 end
-	if not angle then angle = 45 end
-	
+	if not Utils.checkValue(mouseRay, "Ray", "[Utils]") then
+		return
+	end
+	if not Utils.checkValue(rayParams, "RaycastParams", "[Utils]") then
+		return
+	end
+	if not Utils.checkValue(swingRange, "number", "[Utils]") then
+		return
+	end
+
+	if not tries then
+		tries = 10
+	end
+	if not angle then
+		angle = 45
+	end
+
 	local origin = mouseRay.Origin
 	local camDirection = mouseRay.Direction.Unit
-	
+
 	local Buffer = 10
 
 	for i = 1, tries do
-		
 		-- Pick random rotation around axis
 		local theta = math.random() * 2 * math.pi
 		-- Pick random tilt from center (smaller bias than uniform sphere)
@@ -380,7 +383,7 @@ function Node:camCast(mouseRay: Ray, rayParams: RaycastParams, swingRange: numbe
 
 		-- Convert to world space
 		local direction = (right * localDir.X + newUp * localDir.Y + camDirection * localDir.Z).Unit
-		
+
 		local result = workspace:Raycast(origin, direction * (swingRange + Buffer), rayParams)
 		if result then
 			return result
@@ -392,32 +395,28 @@ function MiningHandler.getAdjustedTable(dropTable: table, fortune: number)
 	if not Utils.checkValue(dropTable, "table", "[MiningHandler]") then
 		return
 	end
-	
+
 	if not Utils.checkValue(fortune, "number", "[MiningHandler]") then
 		return
 	end
-	
+
 	if Utils.tableLength(dropTable) == 0 then
 		warn("[MiningHandler] parsed dropTable has no entries", debug.traceback("", 2))
 		return
 	end
-	
-
-
-
 
 	local adjustedTable = table.clone(dropTable)
-	
+
 	local max_w = 0
 	for drop, w in pairs(dropTable) do
 		max_w += w
 	end
-	
+
 	for drop, w in pairs(dropTable) do
-		local rarity_factor = max_w/w
+		local rarity_factor = max_w / w
 		adjustedTable[drop] = w + fortune * math.pow(rarity_factor, MiningHandler.rarity_influence)
 	end
-	
+
 	return adjustedTable
 end
 
@@ -425,42 +424,45 @@ function MiningHandler.dropLoot(dropTable: table, fortune: number)
 	if not Utils.checkValue(dropTable, "table", "[MiningHandler]") then
 		return
 	end
-	
+
 	if not Utils.checkValue(fortune, "number", "[MiningHandler]") then
 		return
 	end
-	
+
 	if Utils.tableLength(dropTable) == 0 then
 		warn("[MiningHandler] parsed dropTable has no entries", debug.traceback("", 2))
 		return
 	end
-	
-	
+
 	local dropsAmount = MiningHandler.baseDrops + math.floor(fortune / MiningHandler.plusDropsPerFortune)
 	local loot = {}
 	for i = 1, dropsAmount do
 		local item = Utils.weightedRndPick(dropTable)
-		if not item  then
+		if not item then
 			warn("[MiningHandler] failed to pick a random item from dropTable", debug.traceback("", 2))
 			return
 		end
 		table.insert(loot, item)
 	end
-	
+
 	return loot
 end
 
-function MiningHandler.checkHit(player: Player,  targets: table, swingRange: number)
+function MiningHandler.checkHit(player: Player, targets: table, swingRange: number)
 	--if not Utils.checkValue(params, "RaycastParams", "[Utils]", true) then return end
-	if not Utils.checkValue(player, "Player", "[Utils]", true) then return end
-	if not Utils.checkValue(swingRange, "number", "[Utils]", true) then return end
+	if not Utils.checkValue(player, "Player", "[Utils]", true) then
+		return
+	end
+	if not Utils.checkValue(swingRange, "number", "[Utils]", true) then
+		return
+	end
 
 	local mouseUnityRay = CustomPlayers.getPlayer(player):getMouseRay()
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Include
 	params.FilterDescendantsInstances = targets
 
-	local result = workspace:Raycast(mouseUnityRay.Origin, mouseUnityRay.Direction*swingRange, params)
+	local result = workspace:Raycast(mouseUnityRay.Origin, mouseUnityRay.Direction * swingRange, params)
 	--if not result then return false end
 	return result
 	--[[if result.Instance == target then
