@@ -36,8 +36,17 @@ function InventoryUIHandler.initPlayerUI(player: Player, mouse: PlayerMouse)
 	self.DefaultGui = player.PlayerGui:WaitForChild("DefaultGui")
 	self.lootNotifications = LootNotifications.new(self)
 
+	--HOTBAR GUI
+	self.HotbarGui = player.PlayerGui:WaitForChild("Hotbar")
+	self.HotbarFrame = self.HotbarGui:WaitForChild("hotbar")
+
 	--INVENTORY GUI
 	self.InventoryGui = player.PlayerGui:WaitForChild("InventoryGui")
+	self.InventoryGui.Changed:Connect(function(property)
+		if property == "Enabled" then
+			self.HotbarGui.Enabled = not self.InventoryGui.Enabled
+		end
+	end)
 	self.InventoryFrame = self.InventoryGui:WaitForChild("Inventory")
 	--init inventory btn
 	self.InvBtn = self.DefaultGui:WaitForChild("ImageButton")

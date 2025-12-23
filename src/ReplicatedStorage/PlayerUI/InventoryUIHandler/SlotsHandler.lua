@@ -1,3 +1,4 @@
+local Utils = require(game.ReplicatedStorage:WaitForChild("Utils"))
 local slotClick = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("slotClick")
 
 local SlotsHandler = {
@@ -5,6 +6,10 @@ local SlotsHandler = {
 	slotTexture = "rbxassetid://117373957075527",
 	defaultSlotColor = Color3.fromRGB(116, 116, 122),
 	slotTransparency = 0.8,
+	hotbarSlotTypes = {
+		EquipmentHotbarSlot = "EquipmentHotbarSlot",
+		HotbarSlot = "HotbarSlot"
+	}
 }
 
 --ITEMS INVENTORY SLOT
@@ -111,7 +116,15 @@ end
 local hotbarSlot = {}
 hotbarSlot.__index = hotbarSlot
 
-function SlotsHandler.newHotbarSlot(playerUI, UIelement: ImageButton)
+function SlotsHandler.newHotbarSlot(playerUI, UIelement: ImageButton, type: string)
+	if not Utils.checkValue(UIelement, "ImageButton", "[SlotsHandler]", true) then
+		return
+	end
+
+	if not Utils.checkValue(type, "string", "[SlotsHandler]") then
+		return
+	end
+
 	local self = {}
 	setmetatable(self, hotbarSlot)
 
@@ -119,10 +132,13 @@ function SlotsHandler.newHotbarSlot(playerUI, UIelement: ImageButton)
 	self.slotNum = UIelement.LayoutOrder
 	self.playerUI = playerUI
 	self.type = "hotbar"
-
-	self.Instance.MouseButton1Click:Connect(function()
-		slotClick:FireServer(self:getItem(), self.type, self.slotNum)
-	end)
+	
+	-- only connect slotClick when its in equipment because this handles cursorItem actions
+	if type == "EquipmentHotbarSlot" then
+		self.Instance.MouseButton1Click:Connect(function()
+			slotClick:FireServer(self:getItem(), self.type, self.slotNum)
+		end)
+	end
 
 	return self
 end

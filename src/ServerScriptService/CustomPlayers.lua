@@ -3,7 +3,10 @@ local Items = require(game.ReplicatedStorage:WaitForChild("Items"))
 local DropHandler = require(game.ServerScriptService:WaitForChild("DropHandler"))
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+local ServerScriptService = game:GetService("ServerScriptService")
+local ServerStorage = game:GetService("ServerStorage")
 
+local ItemModels = ServerStorage:WaitForChild("ItemModels")
 local bagUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("bagUpdate")
 local invUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("invUpdate")
 local equipmentUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("equipmentUpdate")
@@ -208,6 +211,10 @@ function customPlayer:addItemTo(containerId: string, item: table, slotNum: numbe
 		self:giveItem(item, nil, updateClient)
 	else
 		container[tostring(slotNum)] = item
+		--[[update hotbar
+		if containerId == "hotbar" then
+			
+		end]]
 	end
 
 	if not updateClient then
@@ -216,6 +223,33 @@ function customPlayer:addItemTo(containerId: string, item: table, slotNum: numbe
 	invUpdate:FireClient(self.player, self.inventory.items)
 	equipmentUpdate:FireClient(self.player, self.inventory.equipment)
 	cursorUpdate:FireClient(self.player, self.inventory.cursorItem.value)
+end
+
+function customPlayer:equipHotbar(slotNum: number)
+	-- remove prevItem
+	local prevItem = self.player.Character:FindFirstChildOfClass("Tool")
+	if prevItem then
+		prevItem:Destroy()
+	end
+
+	-- if slot has item then equip
+	local item = self.inventory.equipment.hotbar[tostring(slotNum)]
+	if item then
+		local itemModel = Utils.findKeyInNestedTable(ItemModels, item.id)
+		if not itemModel then
+			warn("[CustomPlayers] No item model found for item: " .. tostring(item.id), debug.traceback())
+			return
+		end
+
+		itemModel = itemModel:Clone()
+		itemModel.Name = item.displayName
+		itemModel:SetAttribute("id", item.id)
+
+		local MiningToolScript = ServerScriptService.MiningHandler.MiningToolScript:Clone()
+		MiningToolScript.Parent = itemModel
+
+		itemModel.Parent = self.player.Character
+	end
 end
 
 --- Gives the specified item to the player.

@@ -117,18 +117,36 @@ function Utils.findValueInNestedTable(tbl: table, value: any)
 	return nil
 end
 
+--- Finds and returns a table/instance with that key/name and returns it.
+--- @overload fun(folder: Instance, key: string)
 function Utils.findKeyInNestedTable(tbl: table, key: string)
-	for k, v in pairs(tbl) do
-		-- Direct match
-		if k == key then
-			return v
+	-- Table case
+	if typeof(tbl) == "table" then
+		for k, v in pairs(tbl) do
+			-- Direct match
+			if k == key then
+				return v
+			end
+
+			-- Recurse into nested tables
+			if typeof(v) == "table" then
+				local foundTable = Utils.findKeyInNestedTable(v, key)
+				if foundTable ~= nil then
+					return foundTable
+				end
+			end
 		end
 
-		-- Recurse into nested tables
-		if typeof(v) == "table" then
-			local foundTable = Utils.findKeyInNestedTable(v, key)
-			if foundTable ~= nil then
-				return foundTable
+	-- Instance / Folder case
+	elseif typeof(tbl) == "Instance" then
+		for _, child in ipairs(tbl:GetChildren()) do
+			if child.Name == key then
+				return child
+			end
+
+			local found = Utils.findKeyInNestedTable(child, key)
+			if found ~= nil then
+				return found
 			end
 		end
 	end
