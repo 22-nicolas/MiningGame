@@ -3,6 +3,7 @@ local InventoryUIHandler = {}
 --Services
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local StarterGui = game:GetService("StarterGui")
 
 --Modules
 local Utils = require(ReplicatedStorage:WaitForChild("Utils"))
@@ -31,6 +32,9 @@ function InventoryUIHandler.initPlayerUI(player: Player, mouse: PlayerMouse)
 
 	--REQUEST PLAYER STATS
 	self.stats = self:reqStats()
+
+	-- Disable the default backpack (hotbar)
+	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false)
 
 	--DEFAULT GUI
 	self.DefaultGui = player.PlayerGui:WaitForChild("DefaultGui")
@@ -92,7 +96,24 @@ function InventoryUIHandler.initPlayerUI(player: Player, mouse: PlayerMouse)
 
 	self:setUpTabs()
 
+	InventoryUIHandler[self.player.UserId] = self
+
 	return self
+end
+
+--- Returns the playerUI for the given player.
+function InventoryUIHandler.getPlayerUI(UserId: number)
+	if not Utils.checkValue(UserId, "number", "[InventoryUIHandler]") then
+		return
+	end
+
+	local playerUI = InventoryUIHandler[UserId]
+	
+	if not playerUI then
+		warn("[InventoryUIHandler] The requested PlayerUI doesn't exist. The PlayerUI might not be initialized yet. Player: " .. tostring(UserId) .. ".", debug.traceback())
+	end
+
+	return playerUI
 end
 
 local reqStats = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("reqStats")
@@ -140,27 +161,6 @@ function playerUI:resizeCursorItem()
 
 	self.cursorItem.Instance.Size =
 		UDim2.fromOffset(self.ItemsInv.Slots[1].Instance.AbsoluteSize.X, self.ItemsInv.Slots[1].Instance.AbsoluteSize.Y)
-end
-
-local lastCallbackFunc
-function playerUI:changeHeldItem(item, updateInv: boolean, callback)
-	self.heldItem.itemData = item
-
-	if item then
-		self.heldItem.Instance.Image = item.img
-		self.ItemsInv.tooltip:hide()
-	else
-		self.heldItem.Instance.Image = self.ItemsInv.SlotsHandler.clearImg
-	end
-
-	if updateInv == nil or updateInv then
-		self.ItemsInv:update()
-	end
-
-	if lastCallbackFunc then
-		lastCallbackFunc()
-	end
-	lastCallbackFunc = callback
 end
 
 function playerUI:setUpTabs()

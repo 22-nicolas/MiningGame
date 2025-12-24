@@ -15,6 +15,7 @@ local cancelCursorItem = game.ReplicatedStorage:WaitForChild("Inventory"):WaitFo
 local lootNotification = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("lootNotification")
 local slotClick = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("slotClick")
 local dropItem = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("dropItem")
+local equipHotbarSlot = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("equipHotbarSlot")
 local reqStats = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("reqStats")
 
 local CustomPlayers = {}
@@ -65,6 +66,8 @@ function CustomPlayers.newPlayer(player: Player)
 	self:giveItem("admin_pick", 2)
 	self:giveItem("rookie_pickaxe", 2)
 	self:giveItem("stackableTestItem", 3)
+
+	self:equipHotbarSlot(1, true)
 	return self
 end
 
@@ -122,7 +125,7 @@ slotClick.OnServerEvent:Connect(function(player, slotItem, slotType, slotNum)
 
 	cursorUpdate:FireClient(player, customPlayer.inventory.cursorItem.value)
 	invUpdate:FireClient(player, customPlayer.inventory.items)
-	equipmentUpdate:FireClient(player, customPlayer.inventory.equipment)
+	customPlayer:updateEquipment()
 end)
 
 cancelCursorItem.OnServerEvent:Connect(function(player)
@@ -181,6 +184,15 @@ dropItem.OnServerEvent:Connect(function(player, item)
 	DropHandler.dropItem(hrp, item)
 end)
 
+equipHotbarSlot.OnServerEvent:Connect(function(player, slotNum)
+	local customPlayer = CustomPlayers.getPlayer(player)
+	if not customPlayer then
+		return
+	end
+
+	customPlayer:equipHotbarSlot(slotNum)
+end)
+
 function customPlayer:getContainerFromId(id: string)
 	return Utils.findKeyInNestedTable(self.inventory, id)
 end
@@ -221,19 +233,45 @@ function customPlayer:addItemTo(containerId: string, item: table, slotNum: numbe
 		return
 	end
 	invUpdate:FireClient(self.player, self.inventory.items)
-	equipmentUpdate:FireClient(self.player, self.inventory.equipment)
+	self:updateEquipment()
 	cursorUpdate:FireClient(self.player, self.inventory.cursorItem.value)
 end
 
-function customPlayer:equipHotbar(slotNum: number)
+function customPlayer:updateEquipment()
+	self:equipHotbarSlot(self.equipedHotbarSlot)
+	equipmentUpdate:FireClient(self.player, self.inventory.equipment)
+end
+
+function customPlayer:equipHotbarSlot(slotNum: number, waitForChar: boolean)
+	if waitForChar == nil then
+		waitForChar = false
+	end
+
+	self.equipedHotbarSlot = slotNum
+
+	local item = self.inventory.equipment.hotbar[tostring(slotNum)]
+
+	--check if item changed
+	if Utils.matchTables(item, self.lastEquipedItem) or self.lastEquipedItem == item then
+		return
+	end
+
+	--store item
+	self.lastEquipedItem = item
+
 	-- remove prevItem
+	local character = self.player.Character
+	if not character and waitForChar then
+		character = workspace:WaitForChild(self.player.Name)
+	elseif not character then
+		return
+	end
 	local prevItem = self.player.Character:FindFirstChildOfClass("Tool")
 	if prevItem then
 		prevItem:Destroy()
 	end
 
 	-- if slot has item then equip
-	local item = self.inventory.equipment.hotbar[tostring(slotNum)]
 	if item then
 		local itemModel = Utils.findKeyInNestedTable(ItemModels, item.id)
 		if not itemModel then
@@ -362,7 +400,7 @@ function customPlayer:removeItem(origin: table, pos: number, amount: number, upd
 			return
 		end
 		invUpdate:FireClient(self.player, self.inventory.items)
-		equipmentUpdate:FireClient(self.player, self.inventory.equipment)
+		self:updateEquipment()
 		cursorUpdate:FireClient(self.player, self.inventory.cursorItem.value)
 	else
 		-- Case 2: removeItem(item)

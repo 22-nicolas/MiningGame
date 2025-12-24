@@ -1,7 +1,11 @@
-local Equipment = {}
+local Equipment = {
+	equipedHotbarSlotScale = 1.2
+}
 
 local Utils = require(game.ReplicatedStorage:WaitForChild("Utils"))
 local SlotsHandler = require(game.ReplicatedStorage:WaitForChild("PlayerUI"):WaitForChild("InventoryUIHandler"):WaitForChild("SlotsHandler"))
+
+local equipHotbarSlot = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("equipHotbarSlot")
 
 Equipment.__index = Equipment
 function Equipment.new(playerUI)
@@ -62,6 +66,18 @@ function Equipment:update(equipData)
 
 		self.EquipmentHotbarSlots[i]:setItem(itemData)
 		self.HotbarSlots[i]:setItem(itemData)
+	end
+end
+
+function Equipment:equipHotbarSlot(slotNum: number)
+	equipHotbarSlot:FireServer(slotNum)
+
+	for i, slot in pairs(self.HotbarSlots) do
+		if i == slotNum then
+			slot.Instance.UIScale.Scale = Equipment.equipedHotbarSlotScale
+		else
+			slot.Instance.UIScale.Scale = 1
+		end
 	end
 end
 
