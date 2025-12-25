@@ -102,18 +102,20 @@ function InventoryUIHandler.initPlayerUI(player: Player, mouse: PlayerMouse)
 end
 
 --- Returns the playerUI for the given player.
-function InventoryUIHandler.getPlayerUI(UserId: number)
-	if not Utils.checkValue(UserId, "number", "[InventoryUIHandler]") then
-		return
+--- @overload fun(userId: number)
+function InventoryUIHandler.getPlayerUI(userId: number, timeout: number)
+	timeout = timeout or 5
+	local start = os.clock()
+
+	while not InventoryUIHandler[userId] do
+		if os.clock() - start > timeout then
+			warn("[InventoryUIHandler] Timed out waiting for PlayerUI of:", userId)
+			return nil
+		end
+		task.wait()
 	end
 
-	local playerUI = InventoryUIHandler[UserId]
-	
-	if not playerUI then
-		warn("[InventoryUIHandler] The requested PlayerUI doesn't exist. The PlayerUI might not be initialized yet. Player: " .. tostring(UserId) .. ".", debug.traceback())
-	end
-
-	return playerUI
+	return InventoryUIHandler[userId]
 end
 
 local reqStats = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("reqStats")

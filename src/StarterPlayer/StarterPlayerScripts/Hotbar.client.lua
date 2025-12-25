@@ -2,19 +2,15 @@ local UserInputService = game:GetService("UserInputService")
 local InventoryUIHandler = require(game.ReplicatedStorage:WaitForChild("PlayerUI"):WaitForChild("InventoryUIHandler"))
 
 local Player = game.Players.LocalPlayer
-local PlayerUI
+local PlayerUI = InventoryUIHandler.getPlayerUI(Player.UserId)
+if not PlayerUI then
+    return
+end
 
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if gameProcessed then
 		return
 	end
-
-    if not PlayerUI then
-        PlayerUI = InventoryUIHandler.getPlayerUI(Player.UserId)
-        if not PlayerUI then
-            return
-        end
-    end
 
     if input.UserInputType == Enum.UserInputType.Keyboard then
         if input.KeyCode == Enum.KeyCode.One then
