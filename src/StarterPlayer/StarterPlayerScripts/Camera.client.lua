@@ -4,23 +4,32 @@ local player = game.Players.LocalPlayer
 local PlayerUI = InventoryUIHandler.getPlayerUI(player.UserId)
 
 PlayerUI:ConnectToInventoryEnabledChanged(function(enabled)
+    print(enabled)
     if enabled then
-        UserInputService.MouseIconEnabled = true
+        UserInputService.MouseIcon = ""
     else
-        UserInputService.MouseIconEnabled = player.CameraMaxZoomDistance > 0
+        if player.CameraMaxZoomDistance > 0 then
+            UserInputService.MouseIcon = "http://www.roblox.com/asset/?id=68308747"
+        else
+            UserInputService.MouseIcon = ""
+        end
     end
 end)
 
 function setThirdPersonPerson()
     player.CameraMaxZoomDistance = 10
     player.CameraMinZoomDistance = 10
-    UserInputService.MouseIconEnabled = true
+    UserInputService.MouseIcon = ""
 end
 
 function setFirstPersonPerson()
     player.CameraMaxZoomDistance = 0
     player.CameraMinZoomDistance = 0
-    UserInputService.MouseIconEnabled = false
+    if PlayerUI.InventoryGui.Enabled then
+        UserInputService.MouseIcon = ""
+    else
+        UserInputService.MouseIcon = "http://www.roblox.com/asset/?id=68308747"
+    end
 end
 
 setThirdPersonPerson()
