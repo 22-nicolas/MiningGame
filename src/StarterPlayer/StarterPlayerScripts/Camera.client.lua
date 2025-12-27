@@ -1,5 +1,15 @@
 local UserInputService = game:GetService("UserInputService")
+local InventoryUIHandler = require(game.ReplicatedStorage:WaitForChild("PlayerUI"):WaitForChild("InventoryUIHandler"))
 local player = game.Players.LocalPlayer
+local PlayerUI = InventoryUIHandler.getPlayerUI(player.UserId)
+
+PlayerUI:ConnectToInventoryEnabledChanged(function(enabled)
+    if enabled then
+        UserInputService.MouseIconEnabled = true
+    else
+        UserInputService.MouseIconEnabled = player.CameraMaxZoomDistance > 0
+    end
+end)
 
 function setThirdPersonPerson()
     player.CameraMaxZoomDistance = 10

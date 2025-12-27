@@ -3,6 +3,7 @@ local InventoryUIHandler = {}
 --Services
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
 local StarterGui = game:GetService("StarterGui")
 
 --Modules
@@ -40,17 +41,14 @@ function InventoryUIHandler.initPlayerUI(player: Player, mouse: PlayerMouse)
 	self.DefaultGui = player.PlayerGui:WaitForChild("DefaultGui")
 	self.lootNotifications = LootNotifications.new(self)
 
-	--HOTBAR GUI
-	self.HotbarGui = player.PlayerGui:WaitForChild("Hotbar")
-	self.HotbarFrame = self.HotbarGui:WaitForChild("hotbar")
-
 	--INVENTORY GUI
 	self.InventoryGui = player.PlayerGui:WaitForChild("InventoryGui")
 	self.InventoryGui.Changed:Connect(function(property)
 		if property == "Enabled" then
-			self.HotbarGui.Enabled = not self.InventoryGui.Enabled
+			self:FireInventoryEnabledChanged()
 		end
 	end)
+	self.OnInventoryEnabledChanged = {}
 	self.InventoryFrame = self.InventoryGui:WaitForChild("Inventory")
 	--init inventory btn
 	self.InvBtn = self.DefaultGui:WaitForChild("ImageButton")
@@ -61,7 +59,6 @@ function InventoryUIHandler.initPlayerUI(player: Player, mouse: PlayerMouse)
 			self.cursorItem:cancel()
 		end
 	end)
-
 	self.InventoryFrame.Changed:Connect(function(property)
 		if property == "AbsoluteSize" then
 			self:resizeCursorItem()
@@ -81,6 +78,29 @@ function InventoryUIHandler.initPlayerUI(player: Player, mouse: PlayerMouse)
 			0,
 			self.mouse.Y - UIelement.AbsoluteSize.Y / 2 - self.InventoryFrame.AbsolutePosition.Y
 		)
+	end)
+
+	--HOTBAR GUI
+	self.HotbarGui = player.PlayerGui:WaitForChild("Hotbar")
+	self.HotbarFrame = self.HotbarGui:WaitForChild("hotbar")
+	self:ConnectToInventoryEnabledChanged(function(enabled)
+		self.HotbarGui.Enabled = not enabled
+	end)
+
+	--FreeCursor
+	local FreeCursor = Instance.new("ScreenGui")
+	FreeCursor.Name = "FreeCursor"
+	FreeCursor.Enabled = false
+	local ModalButton = Instance.new("TextButton")
+	ModalButton.Name = "ModalButton"
+	ModalButton.Modal = true
+	ModalButton.Size = UDim2.new(0, 0, 0, 0)
+	ModalButton.Position = UDim2.new(0, 0, 0, 0)
+	ModalButton.Parent = FreeCursor
+	FreeCursor.Parent = player.PlayerGui
+	self.FreeCursor = FreeCursor
+	self:ConnectToInventoryEnabledChanged(function(enabled)
+		self.FreeCursor.Enabled = enabled
 	end)
 
 	--BAG
@@ -116,6 +136,27 @@ function InventoryUIHandler.getPlayerUI(userId: number, timeout: number)
 	end
 
 	return InventoryUIHandler[userId]
+end
+
+--- Connect a function to fire when the Inventory's Enabled property changed.
+function playerUI:ConnectToInventoryEnabledChanged(func)
+	table.insert(self.OnInventoryEnabledChanged, func)
+end
+
+--- Disconnect a function from the Inventory changed event.
+function playerUI:DisconnectFromInventoryEnabledChanged(func)
+	local index = table.find(self.OnInventoryEnabledChanged, func)
+	if not index then
+		return
+	end
+	table.remove(self.OnInventoryEnabledChanged, func)
+end
+
+--- Fire the Inventory's Enabled property changed event.
+function playerUI:FireInventoryEnabledChanged()
+	for _, func in pairs(self.OnInventoryEnabledChanged) do
+		func(self.InventoryGui.Enabled)
+	end
 end
 
 local reqStats = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("reqStats")
