@@ -33,18 +33,14 @@ function Equipment:initHotbarSlots()
 
 	-- hotbar slots displayed in equipment
 	self.EquipmentHotbarSlots = {}
-	for _, slot in pairs(self.EquipmentHotbarFrame:GetChildren()) do
-		if slot:IsA("ImageButton") then
-			table.insert(self.EquipmentHotbarSlots, self.SlotsHandler.newHotbarSlot(self.playerUI, slot, SlotsHandler.hotbarSlotTypes.EquipmentHotbarSlot))
-		end
+	for i = 1, SlotsHandler.HotbarSize, 1 do
+		table.insert(self.EquipmentHotbarSlots, self.SlotsHandler.newSlot(self.playerUI, self.EquipmentHotbarFrame, i, SlotsHandler.hotbarSlotTypes.EquipmentHotbarSlot, SlotsHandler.HotbarSize))
 	end
 
 	-- hotbar slots displayed at the bottom of the screen
 	self.HotbarSlots = {}
-	for _, slot in pairs(self.HotbarFrame:GetChildren()) do
-		if slot:IsA("ImageButton") then
-			table.insert(self.HotbarSlots, self.SlotsHandler.newHotbarSlot(self.playerUI, slot, SlotsHandler.hotbarSlotTypes.HotbarSlot))
-		end
+	for i = 1, SlotsHandler.HotbarSize, 1 do
+		table.insert(self.HotbarSlots, self.SlotsHandler.newSlot(self.playerUI, self.HotbarFrame, i, SlotsHandler.hotbarSlotTypes.HotbarSlot, SlotsHandler.HotbarSize))
 	end
 end
 

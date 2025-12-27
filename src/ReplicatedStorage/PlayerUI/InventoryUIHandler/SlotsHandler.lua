@@ -9,20 +9,21 @@ local SlotsHandler = {
 	hotbarSlotTypes = {
 		EquipmentHotbarSlot = "EquipmentHotbarSlot",
 		HotbarSlot = "HotbarSlot"
-	}
+	},
+	HotbarSize = 6
 }
 
 --ITEMS INVENTORY SLOT
 local slot = {}
 slot.__index = slot
 
-function SlotsHandler.newSlot(playerUI, ItemsInv, layoutOrderIndex: number)
+function SlotsHandler.newSlot(playerUI: table, parent: UIBase, layoutOrderIndex: number, type: string, rowSize: number)
 	local self = {}
 	setmetatable(self, slot)
 
 	local slot = Instance.new("ImageButton")
 	slot.Image = SlotsHandler.slotTexture
-	slot.Size = UDim2.new(0.2, -7, 0, 0)
+	slot.Size = UDim2.new(1/rowSize, -7, 0, 0)
 	slot.LayoutOrder = layoutOrderIndex
 	slot.Name = "slot"
 	slot.ZIndex = 10
@@ -53,11 +54,29 @@ function SlotsHandler.newSlot(playerUI, ItemsInv, layoutOrderIndex: number)
 	amountDisplay.Visible = false
 	amountDisplay.Parent = slot
 
-	slot.Parent = ItemsInv.ItemContainer
+	if type == "HotbarSlot" then
+		local scale = Instance.new("UIScale")
+		if layoutOrderIndex == 1 then
+			scale.Scale = 1.2
+		else
+			scale.Scale = 1
+		end
+		scale.Parent = slot
+	end
+
+	slot.Parent = parent
 
 	self.Instance = slot
-	self.type = "items"
+	if string.find(string.lower(type), "hotbar") then
+		self.type = "hotbar"
+	else
+		self.type = type		
+	end
 	self.slotNum = layoutOrderIndex
+
+	if type == "HotbarSlot" then
+		return self
+	end
 
 	self.Instance.MouseButton1Click:Connect(function()
 		slotClick:FireServer(self:getItem(), self.type, self.slotNum)
@@ -69,7 +88,7 @@ function SlotsHandler.newSlot(playerUI, ItemsInv, layoutOrderIndex: number)
 			if not item then
 				return
 			end
-			ItemsInv.tooltip:show(item)
+			playerUI.ItemsInv.tooltip:show(item)
 		end
 	end)
 
@@ -79,7 +98,7 @@ function SlotsHandler.newSlot(playerUI, ItemsInv, layoutOrderIndex: number)
 			if not item then
 				return
 			end
-			ItemsInv.tooltip:hide()
+			playerUI.ItemsInv.tooltip:hide()
 		end
 	end)
 
@@ -110,63 +129,6 @@ function slot:setItem(item)
 	end
 
 	self.item = item
-end
-
---HOTBAR SLOT
-local hotbarSlot = {}
-hotbarSlot.__index = hotbarSlot
-
-function SlotsHandler.newHotbarSlot(playerUI, UIelement: ImageButton, type: string)
-	if not Utils.checkValue(UIelement, "ImageButton", "[SlotsHandler]", true) then
-		return
-	end
-
-	if not Utils.checkValue(type, "string", "[SlotsHandler]") then
-		return
-	end
-
-	local self = {}
-	setmetatable(self, hotbarSlot)
-
-	self.Instance = UIelement
-	self.slotNum = UIelement.LayoutOrder
-	self.playerUI = playerUI
-	self.type = "hotbar"
-	
-	-- only connect slotClick when its in equipment because this handles cursorItem actions
-	if type == "EquipmentHotbarSlot" then
-		self.Instance.MouseButton1Click:Connect(function()
-			slotClick:FireServer(self:getItem(), self.type, self.slotNum)
-		end)
-	end
-
-	return self
-end
-
-function hotbarSlot:setItem(item)
-	local itemImg = self.Instance:FindFirstChildOfClass("ImageLabel")
-	local UIGradient = self.Instance:FindFirstChildOfClass("UIGradient")
-	local amountDisplay = self.Instance:FindFirstChild("amountDisplay")
-
-	if not item then
-		itemImg.Image = SlotsHandler.clearImg
-		UIGradient.Color = ColorSequence.new(SlotsHandler.defaultSlotColor)
-		amountDisplay.Text = "0"
-		amountDisplay.Visible = false
-	else
-		itemImg.Image = item.img
-		UIGradient.Color = ColorSequence.new(item.rarity)
-		amountDisplay.Text = tostring(item.amount)
-		if item.amount > 1 then
-			amountDisplay.Visible = true
-		end
-	end
-
-	self.item = item
-end
-
-function hotbarSlot:getItem()
-	return self.item
 end
 
 return SlotsHandler

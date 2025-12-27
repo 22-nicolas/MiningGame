@@ -19,7 +19,7 @@ function ItemsInv.new(playerUI)
 	self.Slots = {}
 
 	for i = 1, playerUI.stats.invSlots do
-		local slot = self.SlotsHandler.newSlot(playerUI, self, i)
+		local slot = self.SlotsHandler.newSlot(playerUI, self.ItemContainer, i, "items", 5)
 		table.insert(self.Slots, slot)
 	end
 

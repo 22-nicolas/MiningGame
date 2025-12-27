@@ -25,5 +25,11 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if input.KeyCode == Enum.KeyCode.Four then
             PlayerUI.Equipment:equipHotbarSlot(4)
         end
+        if input.KeyCode == Enum.KeyCode.Five then
+            PlayerUI.Equipment:equipHotbarSlot(5)
+        end
+        if input.KeyCode == Enum.KeyCode.Six then
+            PlayerUI.Equipment:equipHotbarSlot(6)
+        end
     end
 end)
