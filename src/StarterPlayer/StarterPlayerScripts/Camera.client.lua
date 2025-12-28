@@ -2,33 +2,38 @@ local UserInputService = game:GetService("UserInputService")
 local InventoryUIHandler = require(game.ReplicatedStorage:WaitForChild("PlayerUI"):WaitForChild("InventoryUIHandler"))
 local player = game.Players.LocalPlayer
 local PlayerUI = InventoryUIHandler.getPlayerUI(player.UserId)
+local cursors = {
+    default = "",
+    firstPerson = "http://www.roblox.com/asset/?id=68308747"
+}
+
+player.CameraMaxZoomDistance = 10
+player.CameraMinZoomDistance = 10
 
 PlayerUI:ConnectToInventoryEnabledChanged(function(enabled)
     print(enabled)
     if enabled then
-        UserInputService.MouseIcon = ""
+        UserInputService.MouseIcon = cursors.default
     else
-        if player.CameraMaxZoomDistance > 0 then
-            UserInputService.MouseIcon = "http://www.roblox.com/asset/?id=68308747"
+        if player.CameraMode == Enum.CameraMode.Classic then
+            UserInputService.MouseIcon = cursors.default
         else
-            UserInputService.MouseIcon = ""
+            UserInputService.MouseIcon = cursors.firstPerson
         end
     end
 end)
 
 function setThirdPersonPerson()
-    player.CameraMaxZoomDistance = 10
-    player.CameraMinZoomDistance = 10
-    UserInputService.MouseIcon = ""
+    player.CameraMode = Enum.CameraMode.Classic
+    UserInputService.MouseIcon = cursors.default
 end
 
 function setFirstPersonPerson()
-    player.CameraMaxZoomDistance = 0
-    player.CameraMinZoomDistance = 0
+    player.CameraMode = Enum.CameraMode.LockFirstPerson
     if PlayerUI.InventoryGui.Enabled then
-        UserInputService.MouseIcon = ""
+        UserInputService.MouseIcon = cursors.default
     else
-        UserInputService.MouseIcon = "http://www.roblox.com/asset/?id=68308747"
+        UserInputService.MouseIcon = cursors.firstPerson
     end
 end
 
