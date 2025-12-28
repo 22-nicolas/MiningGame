@@ -33,6 +33,11 @@ function DropHandler.initItemBox(item: table)
 
 	self.Item = item
 
+	local amountText = ""
+	if item.amount > 1 then
+		amountText = " x"..tostring(item.amount)
+	end
+
 	--part
 	local Part = Instance.new("Part")
 	Part.Size = Vector3.new(1, 1, 1)
@@ -75,8 +80,9 @@ function DropHandler.initItemBox(item: table)
 
 	--proximity prompt
 	local Prompt = Instance.new("ProximityPrompt")
-	Prompt.ActionText = self.Item.displayName
+	Prompt.ActionText = self.Item.displayName..amountText
 	Prompt.ObjectText = "pick up"
+	Prompt.MaxActivationDistance = 5
 	Prompt.Parent = Part
 	self.Prompt = Prompt
 	--pick up behaviour
