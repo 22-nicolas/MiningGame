@@ -1,6 +1,7 @@
 local Utils = require(game.ReplicatedStorage:WaitForChild("Utils"))
 local Items = require(game.ReplicatedStorage:WaitForChild("Items"))
 local DropHandler = require(game.ServerScriptService:WaitForChild("DropHandler"))
+local StorageHandler = require(game.ServerScriptService:WaitForChild("StorageHandler"))
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")

@@ -68,6 +68,7 @@ local Items = {
 			npcSell = 2,
 			amount = 1,
 			img = "http://www.roblox.com/asset/?id=71161594365669",
+			stackable = true,
 		},
 
 		stone = {
@@ -78,6 +79,7 @@ local Items = {
 			npcSell = 0.1,
 			amount = 1,
 			img = "http://www.roblox.com/asset/?id=856547720",
+			stackable = true,
 		},
 	},
 }
