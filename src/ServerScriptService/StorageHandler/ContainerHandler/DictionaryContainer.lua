@@ -20,6 +20,10 @@ function DictionaryContainer:add(item: table, pos: number)
         warn("[ContainerHandler] When adding to a dictionary a position (key) must be provided.", debug.traceback())
         return
     end
+    if pos > self.container.size then
+        warn("[ContainerHandler] Position is out of bounds.", debug.traceback())
+        return
+    end
     self.container.contents[tostring(pos)] = item
     print("added dictionary container")
 end
@@ -67,9 +71,10 @@ function DictionaryContainer:isFull(amountToBeAdded: number)
             length += 1
         end
     end
-    if length >= self.container.size then
+    if self.container.size and length >= self.container.size then
         return true
     end
+    return false
 end
 
 function DictionaryContainer:getFirstFreeSlot()

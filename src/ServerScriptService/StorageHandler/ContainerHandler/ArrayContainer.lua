@@ -1,9 +1,13 @@
 local ArrayContainer = {}
 ArrayContainer.__index = ArrayContainer
 
-function ArrayContainer.new(container: table)
+function ArrayContainer.new(container: table, size: number)
     container.type = "array"
-    container.contents = {}
+    if not size then
+        container.contents = {}
+    else
+        container.contents = table.create(size)
+    end
 
     local self = {
         container = container
@@ -48,9 +52,10 @@ function ArrayContainer:removeAt(pos: number, amount: number)
 end
 
 function ArrayContainer:isFull(amountToBeAdded: number)
-    if #self.container.contents + amountToBeAdded >= self.container.size then
+    if self.container.size and #self.container.contents + amountToBeAdded >= self.container.size then
         return true
     end
+    return false
 end
 
 return ArrayContainer

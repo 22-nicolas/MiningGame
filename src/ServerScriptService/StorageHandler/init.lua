@@ -1,7 +1,9 @@
 local ContainerHandler = require(script:WaitForChild("ContainerHandler"))
 local Utils = require(game.ReplicatedStorage:WaitForChild("Utils"))
 
-local StorageHandler = {}
+local StorageHandler = {
+    ContainerTypes = ContainerHandler.ContainerTypes
+}
 
 local Storage = {}
 Storage.__index = Storage
@@ -25,7 +27,7 @@ end
 
 --- Creates new container.
 function Storage:newContainer(id: string, size: number, type: string)
-    ContainerHandler.new(id, size, type, self)
+    self[id] = ContainerHandler.new(id, size, type, self)
 end
 
 --- Transfers item from one container to another.

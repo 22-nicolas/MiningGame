@@ -44,6 +44,7 @@ function MonoContainer:isFull()
     if self.container.contents then
         return true
     end
+    return false
 end
 
 return MonoContainer

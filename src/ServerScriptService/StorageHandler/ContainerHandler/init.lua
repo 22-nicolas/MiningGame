@@ -35,9 +35,9 @@ function ContainerHandler.new(id: string, size: number, type: string, Storage: t
         return
     end
 
-    if not Utils.checkValue(size, "number", "[ContainerHandler]") then
+    --[[if not Utils.checkValue(size, "number", "[ContainerHandler]") then
         return
-    end
+    end]]
 
     -- if size is 1 then type will be "mono".
     if size == 1 then
@@ -59,9 +59,9 @@ function ContainerHandler.new(id: string, size: number, type: string, Storage: t
         self._impl = DictionaryContainer.new(self)
     end
 
-    if Storage then
-        Storage[id] = self
-    end
+    --if Storage then
+    --    Storage[id] = self
+    --end
 
     return self
 end
@@ -77,6 +77,7 @@ end
 --- @overload fun(item: table)
 --- @overload fun(itemId: string, pos: number)
 --- @overload fun(item: table, pos: number)
+--- @overload fun(item: table, amount: number)
 --- @note If the container's type is "dictionary" then pos is required.
 function Container:addItem(item: table, amount: number, pos: number)
     --set up variables
