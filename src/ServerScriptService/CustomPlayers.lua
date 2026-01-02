@@ -39,6 +39,13 @@ function CustomPlayers.newPlayer(player: Player)
 	self.stats.miningSpeed = 0
 	self.stats.weakSpotBonusMultiplier = 1
 	self.stats.invSlots = 35
+	self.stats.HotbarSize = 6
+	self.inventory = StorageHandler.new()
+	self.inventory:newContainer("bag", nil, StorageHandler.ContainerTypes.array)
+	self.inventory:newContainer("items", nil, StorageHandler.ContainerTypes.array)
+	self.inventory:newContainer("hotbar", self.stats.HotbarSize, StorageHandler.ContainerTypes.dictionary)
+	self.inventory:newContainer("cursorItem", 1)
+	--[[
 	self.inventory = {
 		bag = {},
 		items = {},
@@ -46,7 +53,7 @@ function CustomPlayers.newPlayer(player: Player)
 			hotbar = {},
 		},
 		cursorItem = { value = nil, key = "cursorItem" },
-	}
+	}]]
 	self.weakSpot = nil
 	self.result = nil
 	self.mouseRay = nil
@@ -102,30 +109,23 @@ slotClick.OnServerEvent:Connect(function(player, slotItem, slotType, slotNum)
 
 	local cursorItem = customPlayer.inventory.cursorItem
 
-	if not slotItem and not cursorItem.value then
+	if not slotItem and not cursorItem.contents then
 		return
 	end
-
-	local slotContainer = customPlayer:getContainerFromId(slotType)
-
-	if not cursorItem.value then
+	local slotContainer = customPlayer.inventory[slotType] --customPlayer:getContainerFromId(slotType)
+	if not cursorItem.contents then
 		--"Pick up" item
-		cursorItem.value = slotItem
-		customPlayer:removeItem(slotContainer, slotNum, slotItem.amount, false)
-	elseif not slotItem and cursorItem.value then
+		StorageHandler.transferItem(slotContainer, slotNum, cursorItem, 1)
+	elseif not slotItem and cursorItem.contents then
 		--Set item
-		customPlayer:addItemTo(slotType, cursorItem.value, slotNum, false)
-		cursorItem.value = nil
-	elseif slotItem and cursorItem.value then
+		StorageHandler.transferItem(cursorItem, 1, slotContainer, slotNum, cursorItem.contents.amount)
+	elseif slotItem and cursorItem.contents then
 		--Swap
-		local cachedItem = cursorItem.value
-		cursorItem.value = slotItem
-		customPlayer:removeItem(slotContainer, slotNum, slotItem.amount, false) --remove is required, because addItemTo doesn't override it just adds for items inventory
-		customPlayer:addItemTo(slotType, cachedItem, slotNum, false)
+		StorageHandler.swapItems(slotContainer, slotNum, cursorItem, 1)
 	end
 
-	cursorUpdate:FireClient(player, customPlayer.inventory.cursorItem.value)
-	invUpdate:FireClient(player, customPlayer.inventory.items)
+	cursorUpdate:FireClient(player, customPlayer.inventory.cursorItem.contents)
+	invUpdate:FireClient(player, customPlayer.inventory.items.contents)
 	customPlayer:updateEquipment()
 end)
 
@@ -147,33 +147,25 @@ cancelCursorItem.OnServerEvent:Connect(function(player)
 	cursorUpdate:FireClient(player, cursorItem.value)
 end)
 
-dropItem.OnServerEvent:Connect(function(player, item)
+dropItem.OnServerEvent:Connect(function(player, originKey, pos, amount)
 	local customPlayer = CustomPlayers.getPlayer(player)
 	if not customPlayer then
 		return
 	end
-	if not customPlayer:hasItem(item) then
-		warn(
-			"[CustomPlayers] Client tried dropping item they don't have. Player: " .. tostring(player.UserId) .. ".",
-			debug.traceback()
-		)
+
+	local item = customPlayer.inventory[originKey]:get(pos)
+	if not item then
 		return
 	end
 
-	if not item.amount then
-		item.amount = 1
-	end
+	local itemToDrop = table.clone(item)
+	itemToDrop.amount = amount
 
-	--prioritize cursor item
-	if Utils.matchTables(item, customPlayer.inventory.cursorItem.value) then
-		customPlayer.inventory.cursorItem.value = nil
-		cursorUpdate:FireClient(player, customPlayer.inventory.cursorItem.value)
-	else
-		customPlayer:removeItem(item)
-	end
-	lootNotification:FireClient(player, item, -item.amount)
+	--remove item data from inventory
+	customPlayer.inventory[originKey]:removeItemAt(pos, amount)
+	customPlayer:updateInventoryUI()
 
-	--drop logic
+	--loot drop logic
 	local character = player.Character
 	if not character then
 		return
@@ -182,7 +174,7 @@ dropItem.OnServerEvent:Connect(function(player, item)
 	if not hrp then
 		return
 	end
-	DropHandler.dropItem(hrp, item)
+	DropHandler.dropItem(hrp, itemToDrop)
 end)
 
 equipHotbarSlot.OnServerEvent:Connect(function(player, slotNum)
@@ -194,53 +186,15 @@ equipHotbarSlot.OnServerEvent:Connect(function(player, slotNum)
 	customPlayer:equipHotbarSlot(slotNum)
 end)
 
-function customPlayer:getContainerFromId(id: string)
-	return Utils.findKeyInNestedTable(self.inventory, id)
-end
-
-function customPlayer:addItemTo(containerId: string, item: table, slotNum: number, updateClient: boolean)
-	if not Utils.checkValue(containerId, "string", "[CustomPlayers]") then
-		return
-	end
-
-	if not Utils.checkValue(item, "table", "[CustomPlayers]") then
-		return
-	end
-
-	if updateClient == nil then
-		updateClient = true
-	end
-
-	local container = self:getContainerFromId(containerId)
-
-	if not container then
-		warn("[CustomPlayers] No container found with id: " .. tostring(containerId))
-		return
-	end
-
-	if containerId == "cursorItem" then
-		container.value = item
-	elseif containerId == "items" then
-		self:giveItem(item, nil, updateClient)
-	else
-		container[tostring(slotNum)] = item
-		--[[update hotbar
-		if containerId == "hotbar" then
-			
-		end]]
-	end
-
-	if not updateClient then
-		return
-	end
-	invUpdate:FireClient(self.player, self.inventory.items)
+function customPlayer:updateInventoryUI()
+	invUpdate:FireClient(self.player, self.inventory.items.contents)
 	self:updateEquipment()
-	cursorUpdate:FireClient(self.player, self.inventory.cursorItem.value)
+	cursorUpdate:FireClient(self.player, self.inventory.cursorItem.contents)
 end
 
 function customPlayer:updateEquipment()
 	self:equipHotbarSlot(self.equipedHotbarSlot)
-	equipmentUpdate:FireClient(self.player, self.inventory.equipment)
+	equipmentUpdate:FireClient(self.player, self.inventory.hotbar.contents)
 end
 
 function customPlayer:equipHotbarSlot(slotNum: number, waitForChar: boolean)
@@ -250,7 +204,7 @@ function customPlayer:equipHotbarSlot(slotNum: number, waitForChar: boolean)
 
 	self.equipedHotbarSlot = slotNum
 
-	local item = self.inventory.equipment.hotbar[tostring(slotNum)]
+	local item = self.inventory.hotbar.contents[tostring(slotNum)]
 
 	--check if item changed
 	if Utils.matchTables(item, self.lastEquipedItem) or self.lastEquipedItem == item then
@@ -293,153 +247,60 @@ end
 
 --- Gives the specified item to the player.
 --- @overload fun(item: table)
-function customPlayer:giveItem(id: string, amount: number, updateClient: boolean)
-	if updateClient == nil then
-		updateClient = true
-	end
-
-	-- Assign item data according to args passed
+--- @overload fun(item: table, fireLootNotification: boolean)
+--- @overload fun(id: string, amount: number)
+function customPlayer:giveItem(id: string, amount: number, fireLootNotification: boolean)
 	local item
 	if typeof(id) == "string" then
 		item = Items.getItemById(id)
-		item.amount = amount
 	else
 		item = id
+	end
+
+	if typeof(amount) == "boolean" then
+		fireLootNotification = amount
+		amount = nil
+	end
+
+	if not amount then
 		amount = item.amount
 	end
 
-	if not item then
-		warn(
-			"[CustomPlayers] Error"
-				.. "No item for id: "
-				.. tostring(id)
-				.. ". while trying to give an item to player "
-				.. tostring(self.player.UserId),
-			debug.traceback()
-		)
+	self.inventory.items:addItem(item, amount)
+
+	self:updateInventoryUI()
+
+	if not fireLootNotification then
 		return
 	end
 
-	--Depending on if the item is a material or not, it will be stored in a different table and handeld differently.
-	if not Items.materials[item.id] then
-		if #self.inventory.items + item.amount ~= self.stats.invSlots then
-			--check if item stacks
-			if item.stackable then
-				--find item in itemsInv
-				local found = false
-				for invId, invItem in pairs(self.inventory.items) do
-					if invId == item.id then
-						invItem.amount += item.amount --add to existing value
-						found = true
-						break
-					end
-				end
-				--if didn't already exist add
-				if not found then
-					item.amount = item.amount
-					table.insert(self.inventory.items, item)
-				end
-			else
-				--if doesnt stack add one by one
-				for i = 1, item.amount do
-					local singleAmountItem = table.clone(item)
-					singleAmountItem.amount = 1
-					table.insert(self.inventory.items, singleAmountItem)
-				end
-			end
-		else
-			--drop
-		end
-		if updateClient then
-			invUpdate:FireClient(self.player, self.inventory.items)
-		end
-	else
-		if self.inventory.bag[item.id] then
-			self.inventory.bag[item.id].amount += item.amount
-		else
-			self.inventory.bag[item.id] = item
-		end
-		if updateClient then
-			bagUpdate:FireClient(self.player, self.inventory.bag)
-		end
-	end
-
-	if updateClient then
-		lootNotification:FireClient(self.player, item, amount)
-	end
+	lootNotification:FireClient(self.player, item, amount)
 end
 
---- Removes an item from the player's inventory.
+-- TODO: Handle loot notifications
+--- Removes the given item from the player's inventory.
 --- @overload fun(item: table)
-function customPlayer:removeItem(origin: table, pos: number, amount: number, updateClient: boolean)
-	if not self:hasItem(origin[tostring(pos)], amount) and not self:hasItem(origin[pos], amount) then
-		warn("[CustomPlayers] Tried removing item that player doesn't have.", debug.traceback())
-		return
-	end
+--- @overload fun(itemId: string)
+--- @overload fun(item: table, force: boolean)
+--- @overload fun(itemId: string, force: boolean)
+function customPlayer:removeItem(itemId: string, amount: number, force: boolean)
+	self.inventory:removeItem(itemId, amount, force)
 
-	if updateClient == nil then
-		updateClient = true
-	end
+	self:updateInventoryUI()
+end
 
-	if not origin.rarity then
-		-- Case 1: removeItem(origin, pos)
-		if Utils.isArray(origin) then
-			if origin[pos].amount <= amount then
-				table.remove(origin, pos)
-			else
-				origin[pos].amount -= amount
-			end
-		else
-			if origin[tostring(pos)].amount <= amount then
-				origin[tostring(pos)] = nil
-			else
-				origin[tostring(pos)].amount -= amount
-			end
-		end
+-- TODO: Handle loot notifications
+--- Removes an item from the player's inventory at the given position.
+function customPlayer:removeItemAt(origin: table, pos: number, amount: number)
+	self.inventory[origin]:removeItemAt(pos, amount)
 
-		if not updateClient then
-			return
-		end
-		invUpdate:FireClient(self.player, self.inventory.items)
-		self:updateEquipment()
-		cursorUpdate:FireClient(self.player, self.inventory.cursorItem.value)
-	else
-		-- Case 2: removeItem(item)
-		local item = origin
-		local pos, origin = self:hasItem(item)
-		if not pos then
-			warn(
-				"[CustomPlayers] Client tried removing item he does not poses. Player: " .. tostring(self.player.UserId),
-				debug.traceback()
-			)
-			return
-		end
-		self:removeItem(origin, pos, item.amount, updateClient)
-	end
+	self:updateInventoryUI()
 end
 
 --- Finds item in inventory. If amount is given only return true if that amount is of items is present.
---- @overload fun(item: table)
-function customPlayer:hasItem(item: table, amount: number)
-	if not item then
-		return false
-	end
-
-	for k, v in pairs(self.inventory) do
-		if v.id == item.id and v.amount >= amount then
-			return true
-		end
-
-		-- Recurse into nested tables
-		if typeof(v) == "table" then
-			local found = Utils.findValueInNestedTable(v, item)
-			if found ~= nil then
-				return found --true
-			end
-		end
-	end
-
-	return false
+--- @overload fun(itemId: table)
+function customPlayer:hasItem(item: table)
+	return self.inventory:containsItem(item)
 end
 
 function customPlayer:getMouseRay()
@@ -478,7 +339,6 @@ function CustomPlayers.newWeakSpot(Node: Node, customPlayer, result: RaycastResu
 	self.Anchored = true
 	self.CanCollide = false
 	self.Player = customPlayer.player
-	self.customPlayer = customPlayer
 	self.raycastCopy = self:createRaycastCopy()
 	self.Material = Enum.Material.Plastic
 
@@ -499,7 +359,9 @@ function weakSpot:deleteWeakSpot()
 	local deleteWeakSpot =
 		game.ReplicatedStorage:WaitForChild("Mining"):WaitForChild("weak spot"):WaitForChild("deleteWeakSpot")
 	deleteWeakSpot:FireClient(self.Player)
-	self.customPlayer.weakSpot = nil
+
+	local customPlayer = CustomPlayers.getPlayer(self.Player)
+	customPlayer.weakSpot = nil
 end
 
 function weakSpot:createRaycastCopy()

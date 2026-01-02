@@ -16,7 +16,6 @@ local mouse = player:GetMouse()
 local playerUI = InventoryUIHandler.initPlayerUI(player, mouse)
 
 bagUpdate.OnClientEvent:Connect(function(bagData)
-	print(bagData)
 	playerUI.Bag:update(bagData)
 end)
 
@@ -53,8 +52,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 		end
 
 		if not clickedInventory and playerUI.cursorItem.itemData then
-			print(playerGui:GetGuiObjectsAtPosition(mousePos.X, mousePos.Y), clickedInventory)
-			dropItem:FireServer(playerUI.cursorItem.itemData, playerUI.cursorItem.itemData.amount)
+			dropItem:FireServer("cursorItem", 1, playerUI.cursorItem.itemData.amount)
 		end
 	end
 end)

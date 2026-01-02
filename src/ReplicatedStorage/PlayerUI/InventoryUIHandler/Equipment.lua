@@ -1,9 +1,11 @@
 local Equipment = {
-	equipedHotbarSlotScale = 1.2
+	equipedHotbarSlotScale = 1.2,
 }
 
 local Utils = require(game.ReplicatedStorage:WaitForChild("Utils"))
-local SlotsHandler = require(game.ReplicatedStorage:WaitForChild("PlayerUI"):WaitForChild("InventoryUIHandler"):WaitForChild("SlotsHandler"))
+local SlotsHandler = require(
+	game.ReplicatedStorage:WaitForChild("PlayerUI"):WaitForChild("InventoryUIHandler"):WaitForChild("SlotsHandler")
+)
 
 local equipHotbarSlot = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("equipHotbarSlot")
 
@@ -20,7 +22,7 @@ function Equipment.new(playerUI)
 	self.SlotsHandler = require(
 		game.ReplicatedStorage:WaitForChild("PlayerUI"):WaitForChild("InventoryUIHandler"):WaitForChild("SlotsHandler")
 	)
-	self.equipData = nil
+	self.hotbarData = nil
 
 	self:initHotbarSlots()
 
@@ -30,35 +32,52 @@ function Equipment.new(playerUI)
 end
 
 function Equipment:initHotbarSlots()
-
 	-- hotbar slots displayed in equipment
 	self.EquipmentHotbarSlots = {}
 	for i = 1, SlotsHandler.HotbarSize, 1 do
-		table.insert(self.EquipmentHotbarSlots, self.SlotsHandler.newSlot(self.playerUI, self.EquipmentHotbarFrame, i, SlotsHandler.hotbarSlotTypes.EquipmentHotbarSlot, SlotsHandler.HotbarSize))
+		table.insert(
+			self.EquipmentHotbarSlots,
+			self.SlotsHandler.newSlot(
+				self.playerUI,
+				self.EquipmentHotbarFrame,
+				i,
+				SlotsHandler.hotbarSlotTypes.EquipmentHotbarSlot,
+				SlotsHandler.HotbarSize
+			)
+		)
 	end
 
 	-- hotbar slots displayed at the bottom of the screen
 	self.HotbarSlots = {}
 	for i = 1, SlotsHandler.HotbarSize, 1 do
-		table.insert(self.HotbarSlots, self.SlotsHandler.newSlot(self.playerUI, self.HotbarFrame, i, SlotsHandler.hotbarSlotTypes.HotbarSlot, SlotsHandler.HotbarSize))
+		table.insert(
+			self.HotbarSlots,
+			self.SlotsHandler.newSlot(
+				self.playerUI,
+				self.HotbarFrame,
+				i,
+				SlotsHandler.hotbarSlotTypes.HotbarSlot,
+				SlotsHandler.HotbarSize
+			)
+		)
 	end
 end
 
-function Equipment:update(equipData)
-	if not equipData and not self.equipData then
+function Equipment:update(hotbarData)
+	if not hotbarData and not self.hotbarData then
 		return
 	end
 
-	--if func gets called from client it will not provide equipData => proceed with last data
-	if not equipData then
-		equipData = self.equipData
+	--if func gets called from client it will not provide hotbarData => proceed with last data
+	if not hotbarData then
+		hotbarData = self.hotbarData
 	else
-		self.equipData = equipData
+		self.hotbarData = hotbarData
 	end
 
 	-- update hotbar
 	for i = 1, #self.HotbarSlots do
-		local itemData = equipData.hotbar[tostring(i)]
+		local itemData = hotbarData[tostring(i)]
 
 		self.EquipmentHotbarSlots[i]:setItem(itemData)
 		self.HotbarSlots[i]:setItem(itemData)
