@@ -71,9 +71,9 @@ function CustomPlayers.newPlayer(player: Player)
 
 	CustomPlayers[player.UserId] = self
 
-	self:giveItem("admin_pick", 2)
-	self:giveItem("rookie_pickaxe", 2)
-	self:giveItem("stackableTestItem", 3)
+	self:giveItem("admin_pick", 2, true)
+	self:giveItem("rookie_pickaxe", 2, true)
+	self:giveItem("stackableTestItem", 3, true)
 
 	self:equipHotbarSlot(1, true)
 	return self
@@ -162,7 +162,7 @@ dropItem.OnServerEvent:Connect(function(player, originKey, pos, amount)
 	itemToDrop.amount = amount
 
 	--remove item data from inventory
-	customPlayer.inventory[originKey]:removeItemAt(pos, amount)
+	customPlayer:removeItemAt(originKey, pos, amount, true)
 	customPlayer:updateInventoryUI()
 
 	--loot drop logic
@@ -277,24 +277,46 @@ function customPlayer:giveItem(id: string, amount: number, fireLootNotification:
 	lootNotification:FireClient(self.player, item, amount)
 end
 
--- TODO: Handle loot notifications
+--- @class RemoveItemOptions
+--- @field force boolean
+--- @field fireLootNotification boolean
+
 --- Removes the given item from the player's inventory.
---- @overload fun(item: table)
---- @overload fun(itemId: string)
---- @overload fun(item: table, force: boolean)
---- @overload fun(itemId: string, force: boolean)
-function customPlayer:removeItem(itemId: string, amount: number, force: boolean)
+--- @overload fun(item: table, amount?: number, options?: RemoveItemOptions)
+--- @param options? RemoveItemOptions
+--- @param amount? number
+function customPlayer:removeItem(itemId: string, amount: number, options: table)
+	options = options or {}
+	if not Utils.checkValue(options, "table", "[CustomPlayers]") then
+		return
+	end
+	local force = options.force
+	local fireLootNotification = options.fireLootNotification
+
 	self.inventory:removeItem(itemId, amount, force)
 
 	self:updateInventoryUI()
+
+	if not fireLootNotification then
+		return
+	end
+
+	lootNotification:FireClient(self.player, itemId, -amount)
 end
 
--- TODO: Handle loot notifications
 --- Removes an item from the player's inventory at the given position.
-function customPlayer:removeItemAt(origin: table, pos: number, amount: number)
+---@param fireLootNotification? boolean
+function customPlayer:removeItemAt(origin: string, pos: number, amount: number, fireLootNotification: boolean)
+	local item = self.inventory[origin]:get(pos)
 	self.inventory[origin]:removeItemAt(pos, amount)
 
 	self:updateInventoryUI()
+
+	if not fireLootNotification then
+		return
+	end
+
+	lootNotification:FireClient(self.player, item, -amount)
 end
 
 --- Finds item in inventory. If amount is given only return true if that amount is of items is present.

@@ -12,9 +12,15 @@ function LootNotifications.new(playerUI)
 	return self
 end
 
-function LootNotifications:addNotification(item, deltaAmount)
+---@overload fun(itemId: string, deltaAmount: number)
+function LootNotifications:addNotification(item: table, deltaAmount: number)
 	local found = false
-	local id = item.id
+	local id
+	if typeof(item) == "string" then
+		id = item
+	else
+		id = item.id
+	end
 	--If item already exists, update notification
 	for i, existingItem in pairs(self.notificationsList) do
 		if existingItem.id == id then
