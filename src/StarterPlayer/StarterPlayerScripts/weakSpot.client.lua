@@ -12,23 +12,16 @@ create.OnClientEvent:Connect(function(weakSpotData: table)
 			weakSpot[key] = value
 		end)
 	end
-	
-	local decal = workspace.ResourceNodes["Killstreak 2500 ORB | Slap Battles: Combat"]
-	local copy = decal:Clone()
-	copy.Parent = weakSpot
 end)
 
 delete.OnClientEvent:Connect(function()
-
 	if not weakSpot then
 		warn("Weak spot not found wasnt created yet cant delete", debug.traceback("", 2))
 		return
 	end
-	
-	weakSpot:Destroy()
-	
-end)
 
+	weakSpot:Destroy()
+end)
 
 lineAnim.OnClientEvent:Connect(function(pos0, pos1)
 	-- create the beam part
@@ -38,7 +31,7 @@ lineAnim.OnClientEvent:Connect(function(pos0, pos1)
 	beamPart.Shape = Enum.PartType.Cylinder
 	beamPart.Transparency = 1 -- fully invisible (SurfaceGuis will still show!)
 	beamPart.Size = Vector3.new(0.1, 0.1, (pos0 - pos1).Magnitude)
-	beamPart.CFrame = CFrame.new(pos0, pos1) * CFrame.new(0, 0, -beamPart.Size.Z/2) -- position + rotation
+	beamPart.CFrame = CFrame.new(pos0, pos1) * CFrame.new(0, 0, -beamPart.Size.Z / 2) -- position + rotation
 	beamPart.Parent = workspace
 
 	-- put SurfaceGuis on each face
@@ -60,7 +53,7 @@ lineAnim.OnClientEvent:Connect(function(pos0, pos1)
 		t += deltaTime
 		local distance = pos0 - pos1
 		local dir = distance.Unit
-		local step = dir * 0.15 * math.pow(t,2)
+		local step = dir * 0.15 * math.pow(t, 2)
 
 		if distance.Magnitude <= step.Magnitude then
 			-- clean up
@@ -72,10 +65,9 @@ lineAnim.OnClientEvent:Connect(function(pos0, pos1)
 		pos0 = pos0 - step
 		-- recompute beamPart’s position/rotation/size
 		beamPart.Size = Vector3.new(0.1, 0.1, (pos0 - pos1).Magnitude)
-		beamPart.CFrame = CFrame.new(pos0, pos1) * CFrame.new(0, 0, -beamPart.Size.Z/2)
+		beamPart.CFrame = CFrame.new(pos0, pos1) * CFrame.new(0, 0, -beamPart.Size.Z / 2)
 	end)
 end)
-
 
 --[[
 local part0
