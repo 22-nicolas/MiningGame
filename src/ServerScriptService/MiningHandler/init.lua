@@ -299,7 +299,7 @@ function Node:mine(player: Player, deltaTime: number)
 		local adjustedTable = MiningHandler.getAdjustedTable(self.oreData.dropTable, trueFortune)
 		local loot = MiningHandler.dropLoot(adjustedTable, trueFortune)
 		for _, item in pairs(loot) do
-			customPlayer:giveItem(item, 1)
+			customPlayer:giveItem(item, 1, true)
 		end
 
 		--Destroy on health = 0
