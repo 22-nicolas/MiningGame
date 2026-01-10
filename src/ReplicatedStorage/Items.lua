@@ -99,4 +99,25 @@ function Items.getItemById(id: string)
 	end
 end
 
+--- Returns true if the given item is a material.
+--- @overload fun(itemId: string)
+function Items.isAMaterial(item: table)
+	local itemId
+	if typeof(item) == "string" then
+		itemId = item
+	else
+		itemId = item.id
+	end
+
+	local isAMaterial = false
+	for _, item in pairs(Items.materials) do
+		if item.id == itemId then
+			isAMaterial = true
+			break
+		end
+	end
+
+	return isAMaterial
+end
+
 return Items

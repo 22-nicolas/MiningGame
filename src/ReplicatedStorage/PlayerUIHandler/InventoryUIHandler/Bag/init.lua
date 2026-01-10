@@ -24,7 +24,8 @@ function Bag:update(bagData)
 		end
 	end
 
-	for id, item in pairs(bagData) do
+	for _, item in pairs(bagData) do
+		local id = item.id
 		local button = self:initItemUI(id, item.amount)
 		button.MouseEnter:Connect(function()
 			self.tooltip:show(id)

@@ -188,6 +188,7 @@ end)
 
 function customPlayer:updateInventoryUI()
 	invUpdate:FireClient(self.player, self.inventory.items.contents)
+	bagUpdate:FireClient(self.player, self.inventory.bag.contents)
 	self:updateEquipment()
 	cursorUpdate:FireClient(self.player, self.inventory.cursorItem.contents)
 end
@@ -266,7 +267,13 @@ function customPlayer:giveItem(id: string, amount: number, fireLootNotification:
 		amount = item.amount
 	end
 
-	self.inventory.items:addItem(item, amount)
+	--check if item is a material or item and add accordingly
+	if Items.isAMaterial(item) then
+		self.inventory.bag:addItem(item, amount)
+		print("material")
+	else
+		self.inventory.items:addItem(item, amount)
+	end
 
 	self:updateInventoryUI()
 
