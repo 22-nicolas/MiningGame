@@ -8,27 +8,28 @@ local hotbarUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("h
 local lootNotification = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("lootNotification")
 local dropItem = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("dropItem")
 
---Instance playerUI
-local InventoryUIHandler = require(game.ReplicatedStorage:WaitForChild("PlayerUI"):WaitForChild("InventoryUIHandler"))
+--Instance PlayerUI
+local PlayerUIHandler = require(game.ReplicatedStorage:WaitForChild("PlayerUIHandler"))
 
 local player = game.Players.LocalPlayer
 local mouse = player:GetMouse()
-local playerUI = InventoryUIHandler.initPlayerUI(player, mouse)
+local PlayerUI = PlayerUIHandler.new(player, mouse)
+local InventoryUI = PlayerUI.InventoryUI
 
 bagUpdate.OnClientEvent:Connect(function(bagData)
-	playerUI.Bag:update(bagData)
+	InventoryUI.Bag:update(bagData)
 end)
 
 invUpdate.OnClientEvent:Connect(function(inventory)
-	playerUI.ItemsInv:update(inventory)
+	InventoryUI.ItemsInv:update(inventory)
 end)
 
 hotbarUpdate.OnClientEvent:Connect(function(equipmentData)
-	playerUI.Equipment.Hotbar:update(equipmentData)
+	InventoryUI.Equipment.Hotbar:update(equipmentData)
 end)
 
 lootNotification.OnClientEvent:Connect(function(item, deltaAmount)
-	playerUI.lootNotifications:addNotification(item, deltaAmount)
+	PlayerUI.lootNotifications:addNotification(item, deltaAmount)
 end)
 
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
@@ -45,14 +46,14 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 		local clickedInventory = false
 
 		for _, gui in ipairs(guiObjects) do
-			if gui:IsDescendantOf(playerUI.InventoryFrame) then
+			if gui:IsDescendantOf(InventoryUI.InventoryFrame) then
 				clickedInventory = true
 				break
 			end
 		end
 
-		if not clickedInventory and playerUI.cursorItem.itemData then
-			dropItem:FireServer("cursorItem", 1, playerUI.cursorItem.itemData.amount)
+		if not clickedInventory and InventoryUI.cursorItem.itemData then
+			dropItem:FireServer("cursorItem", 1, InventoryUI.cursorItem.itemData.amount)
 		end
 	end
 end)

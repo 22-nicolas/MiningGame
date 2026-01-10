@@ -7,7 +7,6 @@ local RunService = game:GetService("RunService")
 
 BagTooltip.__index = BagTooltip
 function BagTooltip.new(Bag)
-
 	local self = {}
 	setmetatable(self, BagTooltip)
 
@@ -16,28 +15,37 @@ function BagTooltip.new(Bag)
 		self:updatePos()
 	end)
 	self.Bag = Bag
-	self.playerUI = Bag.playerUI
+	self.InventoryUI = Bag.InventoryUI
 
 	return self
 end
 
 function BagTooltip:updatePos()
-	local playerUI = self.playerUI
+	local InventoryUI = self.InventoryUI
 	local BagInstance = self.Bag.Instance
-	self.Instance.Position = UDim2.new(0, playerUI.mouse.X - BagInstance.AbsolutePosition.X + 14, 0, playerUI.mouse.Y - BagInstance.AbsolutePosition.Y + 10)
+	self.Instance.Position = UDim2.new(
+		0,
+		InventoryUI.mouse.X - BagInstance.AbsolutePosition.X + 14,
+		0,
+		InventoryUI.mouse.Y - BagInstance.AbsolutePosition.Y + 10
+	)
 end
 
-function BagTooltip:show(id: string) 
-	if not Utils.checkValue(id, "string", "[InventoryHandler]") then return end
+function BagTooltip:show(id: string)
+	if not Utils.checkValue(id, "string", "[InventoryHandler]") then
+		return
+	end
 
 	local item = Items.getItemById(id)
 
 	if not item then
-		warn("[InventoryHandler] Error: No item data for player: "..tostring(self.playerUI.player.UserId)..". While trying to show BagTooltip")
-		return	
+		warn(
+			"[InventoryHandler] Error: No item data for player: "
+				.. tostring(self.InventoryUI.player.UserId)
+				.. ". While trying to show BagTooltip"
+		)
+		return
 	end
-
-
 
 	self.Instance.description.Text = item.description
 	self.Instance.Visible = not self.Instance.Visible

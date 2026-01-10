@@ -4,26 +4,29 @@ local Equipment = {
 
 local Utils = require(game.ReplicatedStorage:WaitForChild("Utils"))
 local SlotsHandler = require(
-	game.ReplicatedStorage:WaitForChild("PlayerUI"):WaitForChild("InventoryUIHandler"):WaitForChild("SlotsHandler")
+	game.ReplicatedStorage
+		:WaitForChild("PlayerUIHandler")
+		:WaitForChild("InventoryUIHandler")
+		:WaitForChild("SlotsHandler")
 )
 local Hotbar = require(script:WaitForChild("Hotbar"))
 
 local equipHotbarSlot = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("equipHotbarSlot")
 
 Equipment.__index = Equipment
-function Equipment.new(playerUI)
+function Equipment.new(InventoryUI)
 	local self = {}
 	setmetatable(self, Equipment)
 
-	self.playerUI = playerUI
-	self.Instance = playerUI.InventoryFrame:WaitForChild("Equipment")
+	self.InventoryUI = InventoryUI
+	self.Instance = InventoryUI.InventoryFrame:WaitForChild("Equipment")
 	self.char_preview = self.Instance:WaitForChild("char_preview")
 	--[[self.EquipmentHotbarFrame = self.Instance:WaitForChild("hotbar")
-	self.HotbarFrame = playerUI.HotbarFrame
+	self.HotbarFrame = InventoryUI.HotbarFrame
 	self.hotbarData = nil]]
 
 	--self:initHotbarSlots()
-	self.Hotbar = Hotbar.initHotbar(playerUI, self)
+	self.Hotbar = Hotbar.initHotbar(InventoryUI, self)
 
 	self:initCharPreiview()
 
@@ -37,7 +40,7 @@ function Equipment:initHotbarSlots()
 		table.insert(
 			self.EquipmentHotbarSlots,
 			SlotsHandler.newSlot(
-				self.playerUI,
+				self.InventoryUI,
 				self.EquipmentHotbarFrame,
 				i,
 				SlotsHandler.hotbarSlotTypes.EquipmentHotbarSlot,
@@ -52,7 +55,7 @@ function Equipment:initHotbarSlots()
 		table.insert(
 			self.HotbarSlots,
 			SlotsHandler.newSlot(
-				self.playerUI,
+				self.InventoryUI,
 				self.HotbarFrame,
 				i,
 				SlotsHandler.hotbarSlotTypes.HotbarSlot,
@@ -111,7 +114,7 @@ function Equipment:initCharPreiview()
 	local UserInputService = game:GetService("UserInputService")
 
 	-- Objects
-	local Player = self.playerUI.player
+	local Player = self.InventoryUI.player
 	local Character = Player.Character or Player.CharacterAdded:Wait()
 	local ViewPort = self.Instance:FindFirstChild("char_preview")
 	local Camera = Instance.new("Camera")

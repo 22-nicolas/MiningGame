@@ -3,18 +3,21 @@ local Hotbar = {
 }
 
 local SlotsHandler = require(
-	game.ReplicatedStorage:WaitForChild("PlayerUI"):WaitForChild("InventoryUIHandler"):WaitForChild("SlotsHandler")
+	game.ReplicatedStorage
+		:WaitForChild("PlayerUIHandler")
+		:WaitForChild("InventoryUIHandler")
+		:WaitForChild("SlotsHandler")
 )
 local equipHotbarSlot = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("equipHotbarSlot")
 
 Hotbar.__index = Hotbar
 --- Initiate Hotbar.
-function Hotbar.initHotbar(playerUI: table, Equipment: table)
+function Hotbar.initHotbar(InventoryUI: table, Equipment: table)
 	local self = {}
 	setmetatable(self, Hotbar)
 
-	self.playerUI = playerUI
-	self.HotbarFrame = playerUI.HotbarFrame
+	self.InventoryUI = InventoryUI
+	self.HotbarFrame = InventoryUI.HotbarFrame
 	self.EquipmentHotbarFrame = Equipment.Instance:WaitForChild("hotbar")
 	self.hotbarCache = nil
 
@@ -23,7 +26,7 @@ function Hotbar.initHotbar(playerUI: table, Equipment: table)
 		table.insert(
 			self.EquipmentHotbarSlots,
 			SlotsHandler.newSlot(
-				self.playerUI,
+				self.InventoryUI,
 				self.EquipmentHotbarFrame,
 				i,
 				SlotsHandler.hotbarSlotTypes.EquipmentHotbarSlot,
@@ -38,7 +41,7 @@ function Hotbar.initHotbar(playerUI: table, Equipment: table)
 		table.insert(
 			self.HotbarSlots,
 			SlotsHandler.newSlot(
-				self.playerUI,
+				self.InventoryUI,
 				self.HotbarFrame,
 				i,
 				SlotsHandler.hotbarSlotTypes.HotbarSlot,

@@ -8,22 +8,28 @@ local SlotsHandler = {
 	slotTransparency = 0.8,
 	hotbarSlotTypes = {
 		EquipmentHotbarSlot = "EquipmentHotbarSlot",
-		HotbarSlot = "HotbarSlot"
+		HotbarSlot = "HotbarSlot",
 	},
-	HotbarSize = 6
+	HotbarSize = 6,
 }
 
 --ITEMS INVENTORY SLOT
 local slot = {}
 slot.__index = slot
 
-function SlotsHandler.newSlot(playerUI: table, parent: UIBase, layoutOrderIndex: number, type: string, rowSize: number)
+function SlotsHandler.newSlot(
+	InventoryUI: table,
+	parent: UIBase,
+	layoutOrderIndex: number,
+	type: string,
+	rowSize: number
+)
 	local self = {}
 	setmetatable(self, slot)
 
 	local slot = Instance.new("ImageButton")
 	slot.Image = SlotsHandler.slotTexture
-	slot.Size = UDim2.new(1/rowSize, -7, 0, 0)
+	slot.Size = UDim2.new(1 / rowSize, -7, 0, 0)
 	slot.LayoutOrder = layoutOrderIndex
 	slot.Name = "slot"
 	slot.ZIndex = 10
@@ -70,7 +76,7 @@ function SlotsHandler.newSlot(playerUI: table, parent: UIBase, layoutOrderIndex:
 	if string.find(string.lower(type), "hotbar") then
 		self.type = "hotbar"
 	else
-		self.type = type		
+		self.type = type
 	end
 	self.slotNum = layoutOrderIndex
 
@@ -88,7 +94,7 @@ function SlotsHandler.newSlot(playerUI: table, parent: UIBase, layoutOrderIndex:
 			if not item then
 				return
 			end
-			playerUI.ItemsInv.tooltip:show(item)
+			InventoryUI.ItemsInv.tooltip:show(item)
 		end
 	end)
 
@@ -98,7 +104,7 @@ function SlotsHandler.newSlot(playerUI: table, parent: UIBase, layoutOrderIndex:
 			if not item then
 				return
 			end
-			playerUI.ItemsInv.tooltip:hide()
+			InventoryUI.ItemsInv.tooltip:hide()
 		end
 	end)
 

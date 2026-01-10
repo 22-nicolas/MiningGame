@@ -23,7 +23,7 @@ function ItemsTooltip.new(ItemsInv)
 		self:updatePos()
 	end)
 	self.ItemsInv = ItemsInv
-	self.playerUI = ItemsInv.playerUI
+	self.InventoryUI = ItemsInv.InventoryUI
 	self.statsFrame = self.Instance:WaitForChild("stats")
 	self.statsPool = self:initStatsPool()
 	self.itemData = nil
@@ -83,18 +83,18 @@ function ItemsTooltip:initStatsPool()
 end
 
 function ItemsTooltip:updatePos()
-	local playerUI = self.playerUI
+	local InventoryUI = self.InventoryUI
 	local ItemsInvInstance = self.ItemsInv.Instance
 	self.Instance.Position = UDim2.new(
 		0,
-		playerUI.mouse.X - ItemsInvInstance.AbsolutePosition.X + 14,
+		InventoryUI.mouse.X - ItemsInvInstance.AbsolutePosition.X + 14,
 		0,
-		playerUI.mouse.Y - ItemsInvInstance.AbsolutePosition.Y + 10
+		InventoryUI.mouse.Y - ItemsInvInstance.AbsolutePosition.Y + 10
 	)
 end
 
 function ItemsTooltip:show(item)
-	if self.playerUI.cursorItem.itemData then
+	if self.InventoryUI.cursorItem.itemData then
 		return
 	end
 	if self.itemData == item then

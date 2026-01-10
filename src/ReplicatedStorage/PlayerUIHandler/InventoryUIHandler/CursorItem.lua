@@ -4,21 +4,21 @@ local cursorUpdate = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChi
 local CursorItem = {}
 
 CursorItem.__index = CursorItem
-function CursorItem.new(playerUI)
+function CursorItem.new(InventoryUI)
 	local self = {}
 	setmetatable(self, CursorItem)
 
-	self.Instance = playerUI.InventoryFrame:WaitForChild("CursorItem")
+	self.Instance = InventoryUI.InventoryFrame:WaitForChild("CursorItem")
 	self.itemData = nil
-	self.playerUI = playerUI
+	self.InventoryUI = InventoryUI
 
 	cursorUpdate.OnClientEvent:Connect(function(itemData)
 		self.itemData = itemData
 		if itemData then
 			self.Instance.Image = itemData.img
-			self.playerUI.ItemsInv.tooltip:hide()
+			self.InventoryUI.ItemsInv.tooltip:hide()
 		else
-			self.Instance.Image = self.playerUI.ItemsInv.SlotsHandler.clearImg
+			self.Instance.Image = self.InventoryUI.ItemsInv.SlotsHandler.clearImg
 		end
 	end)
 
@@ -28,7 +28,7 @@ end
 function CursorItem:cancel()
 	self.itemData = nil
 	self.heldItemOrigin = nil
-	self.Instance.Image = self.playerUI.ItemsInv.SlotsHandler.clearImg
+	self.Instance.Image = self.InventoryUI.ItemsInv.SlotsHandler.clearImg
 
 	cancelCursorItem:FireServer()
 end

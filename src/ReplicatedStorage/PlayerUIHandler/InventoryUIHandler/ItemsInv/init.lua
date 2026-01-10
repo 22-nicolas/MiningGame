@@ -3,23 +3,27 @@ local ItemsTooltip = require(script:WaitForChild("ItemsTooltip"))
 local ItemsInv = {}
 
 ItemsInv.__index = ItemsInv
-function ItemsInv.new(playerUI)
+function ItemsInv.new(PlayerUI: table, InventoryUI: table)
 	local self = {}
 	setmetatable(self, ItemsInv)
 
-	self.playerUI = playerUI
-	self.Instance = playerUI.InventoryFrame:WaitForChild("Items")
+	self.InventoryUI = InventoryUI
+	self.PlayerUI = PlayerUI
+	self.Instance = self.InventoryUI.InventoryFrame:WaitForChild("Items")
 	self.ItemContainer = self.Instance:WaitForChild("items")
 
 	self.tooltip = ItemsTooltip.new(self)
 
 	self.SlotsHandler = require(
-		game.ReplicatedStorage:WaitForChild("PlayerUI"):WaitForChild("InventoryUIHandler"):WaitForChild("SlotsHandler")
+		game.ReplicatedStorage
+			:WaitForChild("PlayerUIHandler")
+			:WaitForChild("InventoryUIHandler")
+			:WaitForChild("SlotsHandler")
 	)
 	self.Slots = {}
 
-	for i = 1, playerUI.stats.invSlots do
-		local slot = self.SlotsHandler.newSlot(playerUI, self.ItemContainer, i, "items", 5)
+	for i = 1, PlayerUI.stats.invSlots do
+		local slot = self.SlotsHandler.newSlot(self.InventoryUI, self.ItemContainer, i, "items", 5)
 		table.insert(self.Slots, slot)
 	end
 
@@ -41,19 +45,19 @@ function ItemsInv:update(inventoryData)
 	end
 
 	--[[if a item is held dont implement it into a slot
-	if self.playerUI.cursorItem.itemData and self.playerUI.cursorItem.heldItemOrigin == "inv" then
-		table.remove(inventoryData, table.find(inventoryData, self.playerUI.cursorItem.itemData))
+	if self.InventoryUI.cursorItem.itemData and self.InventoryUI.cursorItem.heldItemOrigin == "inv" then
+		table.remove(inventoryData, table.find(inventoryData, self.InventoryUI.cursorItem.itemData))
 	end]]
 
 	--Makes sure inv is initiated before updating
 	for i = 0, 5 do
-		if #self.Slots == self.playerUI.stats.invSlots then
+		if #self.Slots == self.PlayerUI.stats.invSlots then
 			break
 		end
 
 		task.wait(1)
 	end
-	if #self.Slots ~= self.playerUI.stats.invSlots then
+	if #self.Slots ~= self.PlayerUI.stats.invSlots then
 		warn(
 			"[InventoryUIHandler] Timed out while waiting for inv to be initiated. Player: "
 				.. tostring(self.player.UserId)

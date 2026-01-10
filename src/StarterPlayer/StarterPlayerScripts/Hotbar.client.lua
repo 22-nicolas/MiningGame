@@ -1,11 +1,12 @@
 local UserInputService = game:GetService("UserInputService")
-local InventoryUIHandler = require(game.ReplicatedStorage:WaitForChild("PlayerUI"):WaitForChild("InventoryUIHandler"))
+local PlayerUIHandler = require(game.ReplicatedStorage:WaitForChild("PlayerUIHandler"))
 
 local Player = game.Players.LocalPlayer
-local PlayerUI = InventoryUIHandler.getPlayerUI(Player.UserId)
+local PlayerUI = PlayerUIHandler.getPlayerUI(Player.UserId)
 if not PlayerUI then
 	return
 end
+local Equipment = PlayerUI.InventoryUI.Equipment
 
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if gameProcessed then
@@ -14,22 +15,22 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 
 	if input.UserInputType == Enum.UserInputType.Keyboard then
 		if input.KeyCode == Enum.KeyCode.One then
-			PlayerUI.Equipment.Hotbar:equipHotbarSlot(1)
+			Equipment.Hotbar:equipHotbarSlot(1)
 		end
 		if input.KeyCode == Enum.KeyCode.Two then
-			PlayerUI.Equipment.Hotbar:equipHotbarSlot(2)
+			Equipment.Hotbar:equipHotbarSlot(2)
 		end
 		if input.KeyCode == Enum.KeyCode.Three then
-			PlayerUI.Equipment.Hotbar:equipHotbarSlot(3)
+			Equipment.Hotbar:equipHotbarSlot(3)
 		end
 		if input.KeyCode == Enum.KeyCode.Four then
-			PlayerUI.Equipment.Hotbar:equipHotbarSlot(4)
+			Equipment.Hotbar:equipHotbarSlot(4)
 		end
 		if input.KeyCode == Enum.KeyCode.Five then
-			PlayerUI.Equipment.Hotbar:equipHotbarSlot(5)
+			Equipment.Hotbar:equipHotbarSlot(5)
 		end
 		if input.KeyCode == Enum.KeyCode.Six then
-			PlayerUI.Equipment.Hotbar:equipHotbarSlot(6)
+			Equipment.Hotbar:equipHotbarSlot(6)
 		end
 	end
 end)

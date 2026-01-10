@@ -4,27 +4,25 @@ Bag.__index = Bag
 local Items = require(game.ReplicatedStorage:WaitForChild("Items"))
 local BagTooltip = require(script:WaitForChild("BagTooltip"))
 
-function Bag.new(playerUI)
-
+function Bag.new(InventoryUI)
 	local self = {}
 	setmetatable(self, Bag)
 
-	self.Instance = playerUI.InventoryFrame:WaitForChild("Bag")
+	self.Instance = InventoryUI.InventoryFrame:WaitForChild("Bag")
 	self.ItemContainer = self.Instance:WaitForChild("items")
-	self.playerUI = playerUI
+	self.InventoryUI = InventoryUI
 	self.tooltip = BagTooltip.new(self)
-	
+
 	return self
 end
 
 function Bag:update(bagData)
 	local children = self.ItemContainer:GetChildren()
 	for _, child in pairs(children) do
-		if child.ClassName ~= "UIListLayout" then 
+		if child.ClassName ~= "UIListLayout" then
 			child:Destroy()
 		end
 	end
-
 
 	for id, item in pairs(bagData) do
 		local button = self:initItemUI(id, item.amount)
@@ -37,7 +35,6 @@ function Bag:update(bagData)
 			self.tooltip:hide()
 			self:dehighlightButton(button)
 		end)
-
 	end
 end
 
@@ -45,8 +42,12 @@ function Bag:initItemUI(id, amount)
 	local item = Items.getItemById(id)
 
 	if not item then
-		warn("[InventoryHandler] Error: No item data for player: "..tostring(self.playerUI.player.UserId)..". While trying to add item to bag")
-		return	
+		warn(
+			"[InventoryHandler] Error: No item data for player: "
+				.. tostring(self.InventoryUI.player.UserId)
+				.. ". While trying to add item to bag"
+		)
+		return
 	end
 
 	item.amount = amount
@@ -84,7 +85,7 @@ function Bag:initItemUI(id, amount)
 	textLabel.FontFace.Weight = Enum.FontWeight.Bold
 	textLabel.BackgroundTransparency = 1
 	textLabel.Name = item.displayName
-	textLabel.Text = tostring(item.amount).."x "..id
+	textLabel.Text = tostring(item.amount) .. "x " .. id
 	textLabel.Position = UDim2.new(0.3, 0, 0, 0)
 	textLabel.Size = UDim2.new(0.7, 0, 1, 0)
 	textLabel.LayoutOrder = 2
