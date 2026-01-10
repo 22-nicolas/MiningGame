@@ -4,7 +4,7 @@ local UserInputService = game:GetService("UserInputService")
 --Remote Events
 local bagUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("bagUpdate")
 local invUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("invUpdate")
-local equipmentUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("equipmentUpdate")
+local hotbarUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("hotbarUpdate")
 local lootNotification = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("lootNotification")
 local dropItem = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("dropItem")
 
@@ -23,8 +23,8 @@ invUpdate.OnClientEvent:Connect(function(inventory)
 	playerUI.ItemsInv:update(inventory)
 end)
 
-equipmentUpdate.OnClientEvent:Connect(function(equipmentData)
-	playerUI.Equipment:update(equipmentData)
+hotbarUpdate.OnClientEvent:Connect(function(equipmentData)
+	playerUI.Equipment.Hotbar:update(equipmentData)
 end)
 
 lootNotification.OnClientEvent:Connect(function(item, deltaAmount)

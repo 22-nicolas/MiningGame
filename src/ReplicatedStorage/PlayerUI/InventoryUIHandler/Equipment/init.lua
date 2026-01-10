@@ -6,6 +6,7 @@ local Utils = require(game.ReplicatedStorage:WaitForChild("Utils"))
 local SlotsHandler = require(
 	game.ReplicatedStorage:WaitForChild("PlayerUI"):WaitForChild("InventoryUIHandler"):WaitForChild("SlotsHandler")
 )
+local Hotbar = require(script:WaitForChild("Hotbar"))
 
 local equipHotbarSlot = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("equipHotbarSlot")
 
@@ -17,14 +18,12 @@ function Equipment.new(playerUI)
 	self.playerUI = playerUI
 	self.Instance = playerUI.InventoryFrame:WaitForChild("Equipment")
 	self.char_preview = self.Instance:WaitForChild("char_preview")
-	self.EquipmentHotbarFrame = self.Instance:WaitForChild("hotbar")
+	--[[self.EquipmentHotbarFrame = self.Instance:WaitForChild("hotbar")
 	self.HotbarFrame = playerUI.HotbarFrame
-	self.SlotsHandler = require(
-		game.ReplicatedStorage:WaitForChild("PlayerUI"):WaitForChild("InventoryUIHandler"):WaitForChild("SlotsHandler")
-	)
-	self.hotbarData = nil
+	self.hotbarData = nil]]
 
-	self:initHotbarSlots()
+	--self:initHotbarSlots()
+	self.Hotbar = Hotbar.initHotbar(playerUI, self)
 
 	self:initCharPreiview()
 
@@ -37,7 +36,7 @@ function Equipment:initHotbarSlots()
 	for i = 1, SlotsHandler.HotbarSize, 1 do
 		table.insert(
 			self.EquipmentHotbarSlots,
-			self.SlotsHandler.newSlot(
+			SlotsHandler.newSlot(
 				self.playerUI,
 				self.EquipmentHotbarFrame,
 				i,
@@ -52,7 +51,7 @@ function Equipment:initHotbarSlots()
 	for i = 1, SlotsHandler.HotbarSize, 1 do
 		table.insert(
 			self.HotbarSlots,
-			self.SlotsHandler.newSlot(
+			SlotsHandler.newSlot(
 				self.playerUI,
 				self.HotbarFrame,
 				i,

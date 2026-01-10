@@ -10,7 +10,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local ItemModels = ServerStorage:WaitForChild("ItemModels")
 local bagUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("bagUpdate")
 local invUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("invUpdate")
-local equipmentUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("equipmentUpdate")
+local hotbarUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("hotbarUpdate")
 local cursorUpdate = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("cursorUpdate")
 local cancelCursorItem = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("cancelCursorItem")
 local lootNotification = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("lootNotification")
@@ -194,7 +194,7 @@ end
 
 function customPlayer:updateEquipment()
 	self:equipHotbarSlot(self.equipedHotbarSlot)
-	equipmentUpdate:FireClient(self.player, self.inventory.hotbar.contents)
+	hotbarUpdate:FireClient(self.player, self.inventory.hotbar.contents)
 end
 
 function customPlayer:equipHotbarSlot(slotNum: number, waitForChar: boolean)
