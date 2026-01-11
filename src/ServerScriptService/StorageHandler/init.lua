@@ -70,8 +70,8 @@ function Storage:removeItem(itemId: string, amount: number, force: boolean)
 		return
 	end
 
-	for containerKey, keys in pairs(self) do
-		for _, key in pairs(keys) do
+	for containerKey, foundKeysInContainer in pairs(foundKeys) do
+		for _, key in pairs(foundKeysInContainer) do
 			local amountInThisSlot = self[containerKey]:get(key).amount
 			local amountToBeRemoved = math.min(amount, amountInThisSlot)
 			self[containerKey]:removeItemAt(key, amount)
@@ -145,7 +145,7 @@ function StorageHandler.swapItems(container1: table, pos1: number, container2: t
 	end
 end
 
---- Finds passed item and returns its index.
+--- Finds passed item and returns its indecices and amount.
 --- @overload fun(itemId: string)
 function Storage:containsItem(item: table)
 	if typeof(item) == "string" then
@@ -157,8 +157,6 @@ function Storage:containsItem(item: table)
 
 	for containerKey, container in pairs(self) do
 		local found = container:containsItem(item)
-
-		local keys = found.keys
 
 		if found then
 			foundAmount += found.amount

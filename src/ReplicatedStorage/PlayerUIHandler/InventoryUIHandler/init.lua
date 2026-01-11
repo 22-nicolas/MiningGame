@@ -8,6 +8,7 @@ local Bag = require(script:WaitForChild("Bag"))
 local ItemsInv = require(script:WaitForChild("ItemsInv"))
 local Equipment = require(script:WaitForChild("Equipment"))
 local CursorItem = require(script:WaitForChild("CursorItem"))
+local Crafting = require(script:WaitForChild("Crafting"))
 
 local InventoryUI = {}
 InventoryUI.__index = InventoryUI
@@ -42,11 +43,13 @@ function InventoryUIHandler.new(PlayerUI: table)
 		end
 	end)
 
+	--TOP BAR
 	self.TopBar = self.InventoryFrame:WaitForChild("TopBar")
-	self.TabsFrame = self.TopBar:WaitForChild("Tabs")
+	self.RightTabs = self.TopBar:WaitForChild("RightTabs")
+	self.LeftTabs = self.TopBar:WaitForChild("LeftTabs")
 
+	--CURSOR ITEM
 	self.cursorItem = CursorItem.new(self)
-
 	RunService.Heartbeat:Connect(function()
 		local UIelement = self.cursorItem.Instance
 		UIelement.Position = UDim2.new(
@@ -66,14 +69,19 @@ function InventoryUIHandler.new(PlayerUI: table)
 
 	--BAG
 	self.Bag = Bag.new(self)
-	self.BagBtn = self.TabsFrame:WaitForChild("Bag")
+	self.BagBtn = self.RightTabs:WaitForChild("Bag")
 
 	--ITEMSINV
 	self.ItemsInv = ItemsInv.new(PlayerUI, self)
-	self.ItemsBtn = self.TabsFrame:WaitForChild("Items")
+	self.ItemsBtn = self.RightTabs:WaitForChild("Items")
 
 	--EQUIPMENT
 	self.Equipment = Equipment.new(self)
+	self.EquipmentBtn = self.LeftTabs:WaitForChild("Equipment")
+
+	--CRAFTING
+	self.Crafting = Crafting.new(self, PlayerUI)
+	self.CraftingBtn = self.LeftTabs:WaitForChild("Crafting")
 
 	self:setUpTabs()
 
@@ -150,6 +158,16 @@ function InventoryUI:setUpTabs()
 	self.ItemsBtn.MouseButton1Click:Connect(function()
 		self.Bag.Instance.Visible = false
 		self.ItemsInv.Instance.Visible = true
+	end)
+
+	self.EquipmentBtn.MouseButton1Click:Connect(function()
+		self.Equipment.Instance.Visible = true
+		self.Crafting.Instance.Visible = false
+	end)
+
+	self.CraftingBtn.MouseButton1Click:Connect(function()
+		self.Equipment.Instance.Visible = false
+		self.Crafting.Instance.Visible = true
 	end)
 end
 

@@ -1,5 +1,6 @@
 local Utils = require(game.ReplicatedStorage:WaitForChild("Utils"))
 local Items = require(game.ReplicatedStorage:WaitForChild("Items"))
+local CraftingHandler = require(game.ReplicatedStorage:WaitForChild("CraftingHandler"))
 local DropHandler = require(game.ServerScriptService:WaitForChild("DropHandler"))
 local StorageHandler = require(game.ServerScriptService:WaitForChild("StorageHandler"))
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -18,6 +19,7 @@ local slotClick = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild(
 local dropItem = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("dropItem")
 local equipHotbarSlot = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("equipHotbarSlot")
 local reqStats = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("reqStats")
+local craftRequest = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("craftRequest")
 
 local CustomPlayers = {}
 local customPlayer = {}
@@ -40,6 +42,7 @@ function CustomPlayers.newPlayer(player: Player)
 	self.stats.weakSpotBonusMultiplier = 1
 	self.stats.invSlots = 35
 	self.stats.HotbarSize = 6
+	self.stats.unlockedRecipes = table.clone(CraftingHandler.DefaultRecipes)
 	self.inventory = StorageHandler.new()
 	self.inventory:newContainer("bag", nil, StorageHandler.ContainerTypes.array)
 	self.inventory:newContainer("items", nil, StorageHandler.ContainerTypes.array)
@@ -186,6 +189,56 @@ equipHotbarSlot.OnServerEvent:Connect(function(player, slotNum)
 	customPlayer:equipHotbarSlot(slotNum)
 end)
 
+craftRequest.OnServerEvent:Connect(function(player, recipe)
+	if not recipe then
+		return
+	end
+
+	local customPlayer = CustomPlayers.getPlayer(player)
+	if not customPlayer then
+		return
+	end
+
+	if not customPlayer:checkRecipe(recipe) then
+		return
+	end
+
+	for _, ingredient in pairs(recipe.ingredients) do
+		local found = customPlayer:hasItem(ingredient.id)
+		if found.amount < ingredient.amount then
+			print("not enough ingredients")
+			return
+		end
+	end
+
+	customPlayer:craft(recipe)
+end)
+
+function customPlayer:craft(recipe: table)
+	for _, ingredient in pairs(recipe.ingredients) do
+		self:removeItem(ingredient.id, ingredient.amount)
+	end
+
+	self:giveItem(recipe.result.id, recipe.result.amount, true)
+end
+
+--- Checks if recipe is valid and is part of the player's unlocked recipes.
+function customPlayer:checkRecipe(recipe: table)
+	if not Utils.checkValue(recipe, "table", "[CustomPlayers]") then
+		return
+	end
+
+	local valid = false
+	for k, unlockedRecipe in pairs(self.stats.unlockedRecipes) do
+		if Utils.matchTables(unlockedRecipe, recipe) then
+			valid = true
+			break
+		end
+	end
+
+	return valid
+end
+
 function customPlayer:updateInventoryUI()
 	invUpdate:FireClient(self.player, self.inventory.items.contents)
 	bagUpdate:FireClient(self.player, self.inventory.bag.contents)
@@ -326,7 +379,7 @@ function customPlayer:removeItemAt(origin: string, pos: number, amount: number, 
 	lootNotification:FireClient(self.player, item, -amount)
 end
 
---- Finds item in inventory. If amount is given only return true if that amount is of items is present.
+--- Finds item in inventory and returns its indecices and amount.
 --- @overload fun(itemId: table)
 function customPlayer:hasItem(item: table)
 	return self.inventory:containsItem(item)

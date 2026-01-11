@@ -80,14 +80,7 @@ function SlotsHandler.newSlot(
 	end
 	self.slotNum = layoutOrderIndex
 
-	if type == "HotbarSlot" then
-		return self
-	end
-
-	self.Instance.MouseButton1Click:Connect(function()
-		slotClick:FireServer(self:getItem(), self.type, self.slotNum)
-	end)
-
+	--tooltip
 	self.Instance.InputChanged:Connect(function(Input)
 		if Input.UserInputType == Enum.UserInputType.MouseMovement then
 			local item = self:getItem()
@@ -106,6 +99,14 @@ function SlotsHandler.newSlot(
 			end
 			InventoryUI.ItemsInv.tooltip:hide()
 		end
+	end)
+
+	if type == "HotbarSlot" or type == "locked" then
+		return self
+	end
+
+	self.Instance.MouseButton1Click:Connect(function()
+		slotClick:FireServer(self:getItem(), self.type, self.slotNum)
 	end)
 
 	return self
