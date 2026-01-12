@@ -50,6 +50,7 @@ function ContainerHandler.new(id: string, size: number, type: string, Storage: t
 
 	self.id = id
 	self.size = size
+	self.connectedFuncs = {}
 
 	if type == ContainerHandler.ContainerTypes.mono then
 		self._impl = MonoContainer.new(self)
@@ -64,6 +65,38 @@ function ContainerHandler.new(id: string, size: number, type: string, Storage: t
 	--end
 
 	return self
+end
+
+--- Connects a function to the changed event.
+--- @param func function
+function Container:connectToChanged(func)
+	if not Utils.checkValue(func, "function", "[ContainerHandler]") then
+		return
+	end
+
+	table.insert(self.connectedFuncs, func)
+end
+
+--- Disconnects a function from the changed event.
+--- @param func function
+function Container:disconnectFromChanged(func)
+	if not Utils.checkValue(func, "function", "[ContainerHandler]") then
+		return
+	end
+
+	local index = table.find(self.connectedFuncs, func)
+	if index then
+		return
+	end
+
+	table.remove(self.connectedFuncs, index)
+end
+
+--- Fires the changed event.
+function Container:fireChanged()
+	for _, func in pairs(self.connectedFuncs) do
+		func()
+	end
 end
 
 --- Gets item from container.
@@ -146,6 +179,7 @@ function Container:addItem(item: table, amount: number, pos: number)
 		end
 	end
 
+	self:fireChanged()
 	return ContainerHandler.Response.success
 end
 
@@ -192,6 +226,7 @@ function Container:removeItem(item: table, amount: number, force: boolean)
 
 	self._impl:remove(item, amount, keys)
 
+	self:fireChanged()
 	return ContainerHandler.Response.success
 end
 
@@ -218,6 +253,9 @@ function Container:removeItemAt(pos: number, amount: number)
 	end
 
 	self._impl:removeAt(pos, amount)
+
+	self:fireChanged()
+	return ContainerHandler.Response.success
 end
 
 --- Finds passed item and returns its index.

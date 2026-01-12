@@ -14,7 +14,41 @@ function StorageHandler.new()
 	local self = {}
 	setmetatable(self, Storage)
 
+	self.connectedFuncs = {}
+
 	return self
+end
+
+--- Connects a function to the changed event.
+--- @param func function
+function Storage:connectToChanged(func)
+	if not Utils.checkValue(func, "function", "[StorageHandler]") then
+		return
+	end
+
+	table.insert(self.connectedFuncs, func)
+end
+
+--- Disconnects a function from the changed event.
+--- @param func function
+function Storage:disconnectFromChanged(func)
+	if not Utils.checkValue(func, "function", "[StorageHandler]") then
+		return
+	end
+
+	local index = table.find(self.connectedFuncs, func)
+	if index then
+		return
+	end
+
+	table.remove(self.connectedFuncs, index)
+end
+
+--- Fires the changed event.
+function Storage:fireChanged(changedContainer: table)
+	for _, func in pairs(self.connectedFuncs) do
+		func(changedContainer)
+	end
 end
 
 --- Assigns container to storage.
@@ -23,12 +57,22 @@ function Storage:addContainer(container: table)
 		return
 	end
 
+	container:connectToChanged(function()
+		self:fireChanged(container)
+	end)
+
 	self[container.id] = container
 end
 
 --- Creates new container.
 function Storage:newContainer(id: string, size: number, type: string)
-	self[id] = ContainerHandler.new(id, size, type, self)
+	local container = ContainerHandler.new(id, size, type, self)
+
+	container:connectToChanged(function()
+		self:fireChanged(container)
+	end)
+
+	self[id] = container
 end
 
 --- Removes item from storage.
