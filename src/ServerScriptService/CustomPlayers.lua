@@ -128,16 +128,14 @@ cancelCursorItem.OnServerEvent:Connect(function(player)
 		return
 	end
 
-	local cursorItem = customPlayer.inventory.cursorItem
-
-	if not cursorItem.value then
+	if not customPlayer.inventory.cursorItem.contents then
 		return
 	end
 
-	customPlayer:giveItem(cursorItem.value)
-	cursorItem.value = nil
+	local itemCache = table.clone(customPlayer.inventory.cursorItem.contents)
 
-	cursorUpdate:FireClient(player, cursorItem.value)
+	customPlayer:removeItemAt("cursorItem", 1, itemCache.amount)
+	customPlayer:giveItem(itemCache)
 end)
 
 dropItem.OnServerEvent:Connect(function(player, originKey, pos, amount)

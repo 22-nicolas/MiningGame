@@ -17,6 +17,7 @@ function Crafting.new(InventoryUI: table, PlayerUI: table)
 	setmetatable(self, Crafting)
 
 	self.PlayerUI = PlayerUI
+	self.InventoryUI = InventoryUI
 	self.Instance = InventoryUI.InventoryFrame:WaitForChild("Crafting")
 	self.RecipeFrame = self.Instance:WaitForChild("Recipes")
 	self.InfoFrame = self.Instance:WaitForChild("Info")
@@ -56,6 +57,7 @@ function Crafting:updateRecipes()
 
 		recipeBtn.Instance.MouseButton1Click:Connect(function()
 			self:setActiveRecipe(recipe)
+			self.InventoryUI.cursorItem:cancel()
 		end)
 	end
 end

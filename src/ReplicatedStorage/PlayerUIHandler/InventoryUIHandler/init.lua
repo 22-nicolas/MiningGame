@@ -168,6 +168,7 @@ function InventoryUI:setUpTabs()
 	self.CraftingBtn.MouseButton1Click:Connect(function()
 		self.Equipment.Instance.Visible = false
 		self.Crafting.Instance.Visible = true
+		self.cursorItem:cancel()
 	end)
 end
 
