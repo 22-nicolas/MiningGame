@@ -12,17 +12,17 @@ function CursorItem.new(InventoryUI)
 	self.itemData = nil
 	self.InventoryUI = InventoryUI
 
-	cursorUpdate.OnClientEvent:Connect(function(itemData)
-		self.itemData = itemData
-		if itemData then
-			self.Instance.Image = itemData.img
-			self.InventoryUI.ItemsInv.tooltip:hide()
-		else
-			self.Instance.Image = self.InventoryUI.ItemsInv.SlotsHandler.clearImg
-		end
-	end)
-
 	return self
+end
+
+function CursorItem:update(itemData)
+	self.itemData = itemData
+	if itemData then
+		self.Instance.Image = itemData.img
+		self.InventoryUI.ItemsInv.tooltip:hide()
+	else
+		self.Instance.Image = self.InventoryUI.ItemsInv.SlotsHandler.clearImg
+	end
 end
 
 function CursorItem:cancel()

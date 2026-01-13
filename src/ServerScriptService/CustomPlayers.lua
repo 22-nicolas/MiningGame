@@ -48,15 +48,9 @@ function CustomPlayers.newPlayer(player: Player)
 	self.inventory:newContainer("items", nil, StorageHandler.ContainerTypes.array)
 	self.inventory:newContainer("hotbar", self.stats.HotbarSize, StorageHandler.ContainerTypes.dictionary)
 	self.inventory:newContainer("cursorItem", 1)
-	--[[
-	self.inventory = {
-		bag = {},
-		items = {},
-		equipment = {
-			hotbar = {},
-		},
-		cursorItem = { value = nil, key = "cursorItem" },
-	}]]
+	self.inventory:connectToChanged(function(changedContainer)
+		self:updateInventoryUI(changedContainer)
+	end)
 	self.weakSpot = nil
 	self.result = nil
 	self.mouseRay = nil
@@ -126,10 +120,6 @@ slotClick.OnServerEvent:Connect(function(player, slotItem, slotType, slotNum)
 		--Swap
 		StorageHandler.swapItems(slotContainer, slotNum, cursorItem, 1)
 	end
-
-	cursorUpdate:FireClient(player, customPlayer.inventory.cursorItem.contents)
-	invUpdate:FireClient(player, customPlayer.inventory.items.contents)
-	customPlayer:updateEquipment()
 end)
 
 cancelCursorItem.OnServerEvent:Connect(function(player)
@@ -166,7 +156,6 @@ dropItem.OnServerEvent:Connect(function(player, originKey, pos, amount)
 
 	--remove item data from inventory
 	customPlayer:removeItemAt(originKey, pos, amount, true)
-	customPlayer:updateInventoryUI()
 
 	--loot drop logic
 	local character = player.Character
@@ -239,11 +228,21 @@ function customPlayer:checkRecipe(recipe: table)
 	return valid
 end
 
-function customPlayer:updateInventoryUI()
-	invUpdate:FireClient(self.player, self.inventory.items.contents)
-	bagUpdate:FireClient(self.player, self.inventory.bag.contents)
-	self:updateEquipment()
-	cursorUpdate:FireClient(self.player, self.inventory.cursorItem.contents)
+function customPlayer:updateInventoryUI(changedContainer: table)
+	if not changedContainer then
+		warn("[CustomPlayers] changedContainer is nil", debug.traceback())
+		return
+	end
+
+	if changedContainer.id == "bag" then
+		bagUpdate:FireClient(self.player, self.inventory.bag.contents)
+	elseif changedContainer.id == "items" then
+		invUpdate:FireClient(self.player, self.inventory.items.contents)
+	elseif changedContainer.id == "hotbar" then
+		self:updateEquipment()
+	elseif changedContainer.id == "cursorItem" then
+		cursorUpdate:FireClient(self.player, self.inventory.cursorItem.contents)
+	end
 end
 
 function customPlayer:updateEquipment()
@@ -328,8 +327,6 @@ function customPlayer:giveItem(id: string, amount: number, fireLootNotification:
 		self.inventory.items:addItem(item, amount)
 	end
 
-	self:updateInventoryUI()
-
 	if not fireLootNotification then
 		return
 	end
@@ -355,8 +352,6 @@ function customPlayer:removeItem(itemId: string, amount: number, options: table)
 
 	self.inventory:removeItem(itemId, amount, force)
 
-	self:updateInventoryUI()
-
 	if not fireLootNotification then
 		return
 	end
@@ -369,8 +364,6 @@ end
 function customPlayer:removeItemAt(origin: string, pos: number, amount: number, fireLootNotification: boolean)
 	local item = self.inventory[origin]:get(pos)
 	self.inventory[origin]:removeItemAt(pos, amount)
-
-	self:updateInventoryUI()
 
 	if not fireLootNotification then
 		return

@@ -129,7 +129,6 @@ function Container:addItem(item: table, amount: number, pos: number)
 		if not pos then
 			pos = amount
 			amount = item.amount
-			print("hello")
 		end
 		if amount > 1 and not item.stackable then
 			warn(
@@ -146,7 +145,7 @@ function Container:addItem(item: table, amount: number, pos: number)
 	if amount then
 		item.amount = amount
 	end
-	print(amount)
+
 	--stackable items
 	if item.stackable then
 		--check if item is already in container
