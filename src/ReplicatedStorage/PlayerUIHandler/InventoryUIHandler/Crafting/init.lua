@@ -10,6 +10,8 @@ local SlotsHandler = require(
 )
 
 local craftRequest = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("craftRequest")
+local checkRecipe = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("checkRecipe")
+local changed = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("changed")
 
 Crafting.__index = Crafting
 function Crafting.new(InventoryUI: table, PlayerUI: table)
@@ -24,6 +26,21 @@ function Crafting.new(InventoryUI: table, PlayerUI: table)
 	self.PreviewSlot = SlotsHandler.newSlot(InventoryUI, self.InfoFrame, 0, "locked", 2)
 	self.IngredientsFrame = self.InfoFrame:WaitForChild("Ingredients")
 	self.CraftBtn = self.InfoFrame:WaitForChild("CraftBtn")
+	checkRecipe.OnClientEvent:Connect(function(craftable)
+		print(craftable)
+		if not craftable then
+			self.CraftBtn.BackgroundColor = BrickColor.new("Gray")
+		else
+			self.CraftBtn.BackgroundColor3 = Color3.fromRGB(85, 255, 0)
+		end
+	end)
+
+	changed.OnClientEvent:Connect(function()
+		if not self.activeRecipe then
+			return
+		end
+		checkRecipe:FireServer(self.activeRecipe)
+	end)
 
 	self.CraftBtn.MouseButton1Click:Connect(function()
 		if not self.activeRecipe then
@@ -90,6 +107,9 @@ function Crafting:setActiveRecipe(recipe: table)
 	self.InfoFrame.Visible = true
 
 	self.activeRecipe = recipe
+
+	--check if craftable
+	checkRecipe:FireServer(recipe)
 end
 
 function Crafting:initRecipeUI(id: string, amount: number)

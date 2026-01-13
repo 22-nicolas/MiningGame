@@ -20,6 +20,8 @@ local dropItem = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("
 local equipHotbarSlot = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("equipHotbarSlot")
 local reqStats = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("reqStats")
 local craftRequest = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("craftRequest")
+local changed = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("changed")
+local checkRecipe = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("checkRecipe")
 
 local CustomPlayers = {}
 local customPlayer = {}
@@ -50,6 +52,7 @@ function CustomPlayers.newPlayer(player: Player)
 	self.inventory:newContainer("cursorItem", 1)
 	self.inventory:connectToChanged(function(changedContainer)
 		self:updateInventoryUI(changedContainer)
+		changed:FireClient(self.player)
 	end)
 	self.weakSpot = nil
 	self.result = nil
@@ -186,19 +189,40 @@ craftRequest.OnServerEvent:Connect(function(player, recipe)
 		return
 	end
 
+	if not customPlayer:validateRecipe(recipe) then
+		return
+	end
+
 	if not customPlayer:checkRecipe(recipe) then
 		return
 	end
 
-	for _, ingredient in pairs(recipe.ingredients) do
-		local found = customPlayer:hasItem(ingredient.id)
-		if found.amount < ingredient.amount then
-			print("not enough ingredients")
-			return
-		end
+	customPlayer:craft(recipe)
+end)
+
+checkRecipe.OnServerEvent:Connect(function(player, recipe)
+	if not recipe then
+		checkRecipe:FireClient(player, false)
+		return
 	end
 
-	customPlayer:craft(recipe)
+	local customPlayer = CustomPlayers.getPlayer(player)
+	if not customPlayer then
+		checkRecipe:FireClient(player, false)
+		return
+	end
+
+	if not customPlayer:validateRecipe(recipe) then
+		checkRecipe:FireClient(player, false)
+		return
+	end
+
+	if not customPlayer:checkRecipe(recipe) then
+		checkRecipe:FireClient(player, false)
+		return
+	end
+
+	checkRecipe:FireClient(player, true)
 end)
 
 function customPlayer:craft(recipe: table)
@@ -209,21 +233,34 @@ function customPlayer:craft(recipe: table)
 	self:giveItem(recipe.result.id, recipe.result.amount, true)
 end
 
---- Checks if recipe is valid and is part of the player's unlocked recipes.
 function customPlayer:checkRecipe(recipe: table)
 	if not Utils.checkValue(recipe, "table", "[CustomPlayers]") then
 		return
 	end
 
-	local valid = false
-	for k, unlockedRecipe in pairs(self.stats.unlockedRecipes) do
-		if Utils.matchTables(unlockedRecipe, recipe) then
-			valid = true
-			break
+	for _, ingredient in pairs(recipe.ingredients) do
+		local found = self:hasItem(ingredient.id)
+		if found.amount < ingredient.amount then
+			return false
 		end
 	end
 
-	return valid
+	return true
+end
+
+--- Checks if recipe is valid and is part of the player's unlocked recipes.
+function customPlayer:validateRecipe(recipe: table)
+	if not Utils.checkValue(recipe, "table", "[CustomPlayers]") then
+		return
+	end
+
+	for k, unlockedRecipe in pairs(self.stats.unlockedRecipes) do
+		if Utils.matchTables(unlockedRecipe, recipe) then
+			return true
+		end
+	end
+
+	return false
 end
 
 function customPlayer:updateInventoryUI(changedContainer: table)
@@ -320,7 +357,6 @@ function customPlayer:giveItem(id: string, amount: number, fireLootNotification:
 	--check if item is a material or item and add accordingly
 	if Items.isAMaterial(item) then
 		self.inventory.bag:addItem(item, amount)
-		print("material")
 	else
 		self.inventory.items:addItem(item, amount)
 	end

@@ -268,8 +268,10 @@ function Container:containsItem(item: table)
 	end
 
 	if self.type == ContainerHandler.ContainerTypes.mono then
-		if self.contents.id == item.id then
+		if self.contents and self.contents.id == item.id then
 			return { keys = { 1 }, amount = self.contents.amount }
+		else
+			return nil
 		end
 	end
 
