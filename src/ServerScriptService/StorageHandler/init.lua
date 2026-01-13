@@ -200,6 +200,10 @@ function Storage:containsItem(item: table)
 	local foundKeys = {}
 
 	for containerKey, container in pairs(self) do
+		if containerKey == "connectedFuncs" then
+			continue
+		end
+
 		local found = container:containsItem(item)
 
 		if found then
