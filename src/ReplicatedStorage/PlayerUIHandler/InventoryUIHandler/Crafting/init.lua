@@ -30,8 +30,10 @@ function Crafting.new(InventoryUI: table, PlayerUI: table)
 		print(craftable)
 		if not craftable then
 			self.CraftBtn.BackgroundColor = BrickColor.new("Gray")
+			self.CraftBtn.Text = "Not enough ingredients..."
 		else
 			self.CraftBtn.BackgroundColor3 = Color3.fromRGB(85, 255, 0)
+			self.CraftBtn.Text = "Craft!"
 		end
 	end)
 
