@@ -1,8 +1,20 @@
 local Rarities = require(game.ReplicatedStorage:WaitForChild("Rarities"))
 local Utils = require(game.ReplicatedStorage:WaitForChild("Utils"))
 
-local Items = {
+local types = {
+	Pickaxe = "Pickaxe",
+	helmet = "helmet",
+}
 
+local stats = {
+	miningSpeed = "miningSpeed",
+	miningFortune = "miningFortune",
+	swingRange = "swingRange",
+	breakingPower = "breakingPower",
+	npcSell = "npcSell",
+}
+
+local Items = {
 	miningTools = {
 		admin_pick = {
 			id = "admin_pick",
@@ -17,10 +29,10 @@ local Items = {
 			swingRange = 14,
 			type = "Pickaxe",
 			displayedStats = {
-				"miningSpeed",
-				"miningFortune",
-				"swingRange",
-				"breakingPower",
+				stats.miningSpeed,
+				stats.miningFortune,
+				stats.swingRange,
+				stats.breakingPower,
 			},
 			amount = 1,
 		},
@@ -37,28 +49,34 @@ local Items = {
 			swingRange = 14,
 			type = "Pickaxe",
 			displayedStats = {
-				"miningSpeed",
-				"miningFortune",
-				"swingRange",
-				"breakingPower",
-				"npcSell",
+				stats.miningSpeed,
+				stats.miningFortune,
+				stats.swingRange,
+				stats.breakingPower,
+				stats.npcSell,
 			},
 			amount = 1,
 		},
 	},
-
-	other = {
-		stackableTestItem = {
-			id = "stackableTestItem",
-			displayName = "Stackable Test Item",
-			rarity = Rarities.uncommon,
+	armor = {
+		mining_helmet = {
+			id = "mining_helmet",
+			displayName = "Mining Helmet",
+			rarity = Rarities.rare,
+			description = "",
 			img = "http://www.roblox.com/asset/?id=258161647",
+			npcSell = 40,
+			miningFortune = 20,
+			miningSpeed = 20,
+			type = types.helmet,
+			displayedStats = {
+				stats.miningSpeed,
+				stats.miningFortune,
+				stats.npcSell,
+			},
 			amount = 1,
-			description = "Test item",
-			stackable = true,
 		},
 	},
-
 	materials = {
 		coal = {
 			id = "coal",
@@ -82,6 +100,17 @@ local Items = {
 			stackable = true,
 		},
 	},
+	other = {
+		stackableTestItem = {
+			id = "stackableTestItem",
+			displayName = "Stackable Test Item",
+			rarity = Rarities.uncommon,
+			img = "http://www.roblox.com/asset/?id=258161647",
+			amount = 1,
+			description = "Test item",
+			stackable = true,
+		},
+	},
 }
 
 function Items.getItemById(id: string)
@@ -102,6 +131,10 @@ end
 --- Returns true if the given item is a material.
 --- @overload fun(itemId: string)
 function Items.isAMaterial(item: table)
+	if not Utils.checkValue(item, "table", "[Items]") then
+		return
+	end
+
 	local itemId
 	if typeof(item) == "string" then
 		itemId = item

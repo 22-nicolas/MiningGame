@@ -74,6 +74,7 @@ function CustomPlayers.newPlayer(player: Player)
 	self:giveItem("admin_pick", 2, true)
 	self:giveItem("rookie_pickaxe", 2, true)
 	self:giveItem("stackableTestItem", 3, true)
+	self:giveItem("mining_helmet", 1, true)
 
 	self:equipHotbarSlot(1, true)
 	return self
