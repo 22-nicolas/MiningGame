@@ -27,7 +27,7 @@ local Items = {
 			miningFortune = 2000,
 			miningSpeed = 2000,
 			swingRange = 14,
-			type = "Pickaxe",
+			type = types.Pickaxe,
 			displayedStats = {
 				stats.miningSpeed,
 				stats.miningFortune,
@@ -47,7 +47,7 @@ local Items = {
 			miningFortune = 20,
 			miningSpeed = 20,
 			swingRange = 14,
-			type = "Pickaxe",
+			type = types.Pickaxe,
 			displayedStats = {
 				stats.miningSpeed,
 				stats.miningFortune,

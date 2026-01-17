@@ -23,31 +23,26 @@ function Hotbar.initHotbar(InventoryUI: table, Equipment: table)
 
 	self.EquipmentHotbarSlots = {}
 	for i = 1, SlotsHandler.HotbarSize, 1 do
-		table.insert(
-			self.EquipmentHotbarSlots,
-			SlotsHandler.newSlot(
-				self.InventoryUI,
-				self.EquipmentHotbarFrame,
-				i,
-				SlotsHandler.hotbarSlotTypes.EquipmentHotbarSlot,
-				SlotsHandler.HotbarSize
-			)
-		)
+		local slotOptions = {
+			type = SlotsHandler.hotbarSlotTypes.EquipmentHotbarSlot,
+			layoutOrderIndex = i,
+			rowSize = SlotsHandler.HotbarSize,
+		}
+		local slot = SlotsHandler.newSlot(self.InventoryUI, self.EquipmentHotbarFrame, slotOptions)
+		table.insert(self.EquipmentHotbarSlots, slot)
 	end
 
 	-- hotbar slots displayed at the bottom of the screen
 	self.HotbarSlots = {}
 	for i = 1, SlotsHandler.HotbarSize, 1 do
-		table.insert(
-			self.HotbarSlots,
-			SlotsHandler.newSlot(
-				self.InventoryUI,
-				self.HotbarFrame,
-				i,
-				SlotsHandler.hotbarSlotTypes.HotbarSlot,
-				SlotsHandler.HotbarSize
-			)
-		)
+		local slotOptions = {
+			type = SlotsHandler.hotbarSlotTypes.HotbarSlot,
+			layoutOrderIndex = i,
+			rowSize = SlotsHandler.HotbarSize,
+			locked = true,
+		}
+		local slot = SlotsHandler.newSlot(self.InventoryUI, self.HotbarFrame, slotOptions)
+		table.insert(self.HotbarSlots, slot)
 	end
 
 	return self

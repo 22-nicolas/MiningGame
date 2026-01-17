@@ -17,13 +17,28 @@ local SlotsHandler = {
 local slot = {}
 slot.__index = slot
 
-function SlotsHandler.newSlot(
-	InventoryUI: table,
-	parent: UIBase,
-	layoutOrderIndex: number,
-	type: string,
-	rowSize: number
-)
+--- @class SlotOptions
+--- @field type string
+--- @field rowSize number
+--- @field layoutOrderIndex number
+--- @field locked boolean
+
+function SlotsHandler.newSlot(InventoryUI: table, parent: UIBase, slotOptions: SlotOptions)
+	if not typeof(slotOptions) == "table" then
+		warn("[SlotsHandler] " .. typeof(slotOptions) .. " is an invalid type for slotOptions.", debug.traceback())
+		return
+	end
+
+	local layoutOrderIndex = slotOptions.layoutOrderIndex
+	local type = slotOptions.type
+	local rowSize = slotOptions.rowSize
+	local locked = slotOptions.locked
+
+	--if no type was provided proceed with an empty string so nothing throws errors later on
+	if not type then
+		type = ""
+	end
+
 	local self = {}
 	setmetatable(self, slot)
 
@@ -101,7 +116,7 @@ function SlotsHandler.newSlot(
 		end
 	end)
 
-	if type == "HotbarSlot" or type == "locked" then
+	if type == "HotbarSlot" or locked then
 		return self
 	end
 

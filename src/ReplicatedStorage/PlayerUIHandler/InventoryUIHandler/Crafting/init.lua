@@ -23,7 +23,12 @@ function Crafting.new(InventoryUI: table, PlayerUI: table)
 	self.Instance = InventoryUI.InventoryFrame:WaitForChild("Crafting")
 	self.RecipeFrame = self.Instance:WaitForChild("Recipes")
 	self.InfoFrame = self.Instance:WaitForChild("Info")
-	self.PreviewSlot = SlotsHandler.newSlot(InventoryUI, self.InfoFrame, 0, "locked", 2)
+	local slotOptions = {
+		layoutOrderIndex = 0,
+		rowSize = 2,
+		locked = true,
+	}
+	self.PreviewSlot = SlotsHandler.newSlot(InventoryUI, self.InfoFrame, slotOptions)
 	self.IngredientsFrame = self.InfoFrame:WaitForChild("Ingredients")
 	self.CraftBtn = self.InfoFrame:WaitForChild("CraftBtn")
 	checkRecipe.OnClientEvent:Connect(function(craftable)

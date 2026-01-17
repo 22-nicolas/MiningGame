@@ -1,6 +1,8 @@
 local ItemsTooltip = require(script:WaitForChild("ItemsTooltip"))
 
-local ItemsInv = {}
+local ItemsInv = {
+	rowSize = 5,
+}
 
 ItemsInv.__index = ItemsInv
 function ItemsInv.new(PlayerUI: table, InventoryUI: table)
@@ -23,7 +25,12 @@ function ItemsInv.new(PlayerUI: table, InventoryUI: table)
 	self.Slots = {}
 
 	for i = 1, PlayerUI.stats.invSlots do
-		local slot = self.SlotsHandler.newSlot(self.InventoryUI, self.ItemContainer, i, "items", 5)
+		local slotOptions = {
+			type = "items",
+			layoutOrderIndex = i,
+			rowSize = ItemsInv.rowSize,
+		}
+		local slot = self.SlotsHandler.newSlot(self.InventoryUI, self.ItemContainer, slotOptions)
 		table.insert(self.Slots, slot)
 	end
 
