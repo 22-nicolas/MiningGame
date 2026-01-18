@@ -35,7 +35,7 @@ function DropHandler.initItemBox(item: table)
 
 	local amountText = ""
 	if item.amount > 1 then
-		amountText = " x"..tostring(item.amount)
+		amountText = " x" .. tostring(item.amount)
 	end
 
 	--part
@@ -80,7 +80,7 @@ function DropHandler.initItemBox(item: table)
 
 	--proximity prompt
 	local Prompt = Instance.new("ProximityPrompt")
-	Prompt.ActionText = self.Item.displayName..amountText
+	Prompt.ActionText = self.Item.displayName .. amountText
 	Prompt.ObjectText = "pick up"
 	Prompt.MaxActivationDistance = 5
 	Prompt.Parent = Part
@@ -109,7 +109,7 @@ function itemBox:pickUp(player)
 	end
 
 	self:delete()
-	customPlayer:giveItem(self.Item)
+	customPlayer:giveItem(self.Item, true)
 end
 
 --- Delete item box.
