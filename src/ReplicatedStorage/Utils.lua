@@ -213,15 +213,11 @@ function Utils.checkValue(value, expectedType, tag, printPath, lvl)
 		printPath = false
 	end
 
-	if not lvl then
-		lvl = 2
-	end
-
 	if not tag then
 		tag = "[Utils]"
 	end
 
-	local nilMessage = tag .. " Arguments missing."
+	local nilMessage = tag .. " Arguments missing. Expected class/type: " .. tostring(expectedType)
 	local invalidMessage
 
 	local isInstance = typeof(value) == "Instance"
@@ -229,18 +225,22 @@ function Utils.checkValue(value, expectedType, tag, printPath, lvl)
 		invalidMessage = tag
 			.. " "
 			.. value.ClassName
-			.. " is not a valid class. Expected class: "
+			.. " is not a valid class. Expected class/type: "
 			.. tostring(expectedType)
 
 		if printPath then
 			invalidMessage = invalidMessage .. ". Instance Path: " .. Utils.getPath(value)
 		end
 	else
-		invalidMessage = tag .. " " .. typeof(value) .. " is not a valid class. Expected class: " .. expectedType
+		invalidMessage = tag
+			.. " "
+			.. typeof(value)
+			.. " is not a valid class/type. Expected class/type: "
+			.. expectedType
 	end
 
 	if not value then
-		warn(nilMessage, debug.traceback("", lvl))
+		warn(nilMessage, debug.traceback(lvl))
 		return false
 	end
 
