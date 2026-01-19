@@ -23,16 +23,23 @@ slot.__index = slot
 --- @field layoutOrderIndex number
 --- @field locked boolean
 
+---@overload fun(InventoryUI: table, slot: ImageButton, slotOptions?: SlotOptions)
+---@param slotOptions? SlotOptions
 function SlotsHandler.newSlot(InventoryUI: table, parent: UIBase, slotOptions: SlotOptions)
-	if not typeof(slotOptions) == "table" then
-		warn("[SlotsHandler] " .. typeof(slotOptions) .. " is an invalid type for slotOptions.", debug.traceback())
-		return
-	end
+	local layoutOrderIndex
+	local type
+	local locked
 
-	local layoutOrderIndex = slotOptions.layoutOrderIndex
-	local type = slotOptions.type
-	local rowSize = slotOptions.rowSize
-	local locked = slotOptions.locked
+	if slotOptions then
+		if not typeof(slotOptions) == "table" then
+			warn("[SlotsHandler] " .. typeof(slotOptions) .. " is an invalid type for slotOptions.", debug.traceback())
+			return
+		end
+
+		layoutOrderIndex = slotOptions.layoutOrderIndex
+		type = slotOptions.type
+		locked = slotOptions.locked
+	end
 
 	--if no type was provided proceed with an empty string so nothing throws errors later on
 	if not type then
@@ -41,6 +48,69 @@ function SlotsHandler.newSlot(InventoryUI: table, parent: UIBase, slotOptions: S
 
 	local self = {}
 	setmetatable(self, slot)
+
+	local slot
+
+	if parent.ClassName == "ImageButton" then
+		slot = parent
+	else
+		slot = SlotsHandler.initSlotUIEmelent(slotOptions)
+		slot.Parent = parent
+	end
+
+	if type == "HotbarSlot" then
+		local scale = Instance.new("UIScale")
+		if layoutOrderIndex == 1 then
+			scale.Scale = 1.2
+		else
+			scale.Scale = 1
+		end
+		scale.Parent = slot
+	end
+
+	self.Instance = slot
+	if string.find(string.lower(type), "hotbar") then
+		self.type = "hotbar"
+	else
+		self.type = type
+	end
+	self.slotNum = layoutOrderIndex or 1
+
+	--tooltip
+	self.Instance.InputChanged:Connect(function(Input)
+		if Input.UserInputType == Enum.UserInputType.MouseMovement then
+			local item = self:getItem()
+			if not item then
+				return
+			end
+			InventoryUI.ItemsInv.tooltip:show(item)
+		end
+	end)
+
+	self.Instance.InputEnded:Connect(function(Input)
+		if Input.UserInputType == Enum.UserInputType.MouseMovement then
+			local item = self:getItem()
+			if not item then
+				return
+			end
+			InventoryUI.ItemsInv.tooltip:hide()
+		end
+	end)
+
+	if type == "HotbarSlot" or locked then
+		return self
+	end
+
+	self.Instance.MouseButton1Click:Connect(function()
+		slotClick:FireServer(self:getItem(), self.type, self.slotNum)
+	end)
+
+	return self
+end
+
+function SlotsHandler.initSlotUIEmelent(slotOptions: SlotOptions)
+	local layoutOrderIndex = slotOptions.layoutOrderIndex
+	local rowSize = slotOptions.rowSize
 
 	local slot = Instance.new("ImageButton")
 	slot.Image = SlotsHandler.slotTexture
@@ -75,56 +145,7 @@ function SlotsHandler.newSlot(InventoryUI: table, parent: UIBase, slotOptions: S
 	amountDisplay.Visible = false
 	amountDisplay.Parent = slot
 
-	if type == "HotbarSlot" then
-		local scale = Instance.new("UIScale")
-		if layoutOrderIndex == 1 then
-			scale.Scale = 1.2
-		else
-			scale.Scale = 1
-		end
-		scale.Parent = slot
-	end
-
-	slot.Parent = parent
-
-	self.Instance = slot
-	if string.find(string.lower(type), "hotbar") then
-		self.type = "hotbar"
-	else
-		self.type = type
-	end
-	self.slotNum = layoutOrderIndex
-
-	--tooltip
-	self.Instance.InputChanged:Connect(function(Input)
-		if Input.UserInputType == Enum.UserInputType.MouseMovement then
-			local item = self:getItem()
-			if not item then
-				return
-			end
-			InventoryUI.ItemsInv.tooltip:show(item)
-		end
-	end)
-
-	self.Instance.InputEnded:Connect(function(Input)
-		if Input.UserInputType == Enum.UserInputType.MouseMovement then
-			local item = self:getItem()
-			if not item then
-				return
-			end
-			InventoryUI.ItemsInv.tooltip:hide()
-		end
-	end)
-
-	if type == "HotbarSlot" or locked then
-		return self
-	end
-
-	self.Instance.MouseButton1Click:Connect(function()
-		slotClick:FireServer(self:getItem(), self.type, self.slotNum)
-	end)
-
-	return self
+	return slot
 end
 
 function slot:getItem()
