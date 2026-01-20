@@ -102,12 +102,13 @@ reqStats.OnServerEvent:Connect(function(player)
 	reqStats:FireClient(player, customPlayer.stats)
 end)
 
-slotClick.OnServerEvent:Connect(function(player, slotItem, slotType, slotNum)
+slotClick.OnServerEvent:Connect(function(player, slotType, slotNum)
 	local customPlayer = CustomPlayers.getPlayer(player)
 	if not customPlayer then
 		return
 	end
 
+	local slotItem = customPlayer.inventory[slotType]:get(slotNum)
 	local cursorItem = customPlayer.inventory.cursorItem
 
 	if not slotItem and not cursorItem.contents then
@@ -120,6 +121,7 @@ slotClick.OnServerEvent:Connect(function(player, slotItem, slotType, slotNum)
 	elseif not slotItem and cursorItem.contents then
 		--Set item
 		StorageHandler.transferItem(cursorItem, 1, slotContainer, slotNum, cursorItem.contents.amount)
+		print(customPlayer.inventory)
 	elseif slotItem and cursorItem.contents then
 		--Swap
 		StorageHandler.swapItems(slotContainer, slotNum, cursorItem, 1)

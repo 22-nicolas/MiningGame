@@ -102,7 +102,7 @@ function SlotsHandler.newSlot(InventoryUI: table, parent: UIBase, slotOptions: S
 	end
 
 	self.Instance.MouseButton1Click:Connect(function()
-		slotClick:FireServer(self:getItem(), self.type, self.slotNum)
+		slotClick:FireServer(self.type, self.slotNum)
 	end)
 
 	return self
