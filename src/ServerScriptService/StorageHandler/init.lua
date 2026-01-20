@@ -156,8 +156,13 @@ function StorageHandler.transferItem(
 	local itemToTransfer = table.clone(item)
 	itemToTransfer.amount = amount
 
+	local response = nextContainer:addItem(itemToTransfer, amount, nextPos)
+
+	if not response == ContainerHandler.Response.success then
+		return response
+	end
+
 	prevContainer:removeItemAt(prevPos, amount)
-	nextContainer:addItem(itemToTransfer, amount, nextPos)
 end
 
 function StorageHandler.swapItems(container1: table, pos1: number, container2: table, pos2: number)
