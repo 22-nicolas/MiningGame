@@ -26,23 +26,20 @@ Container.__index = Container
 --setmetatable(ArrayContainer, {__index = Container})
 
 --- Creates new container and returns it.
---- @overload fun(id: string, size: number)
---- @overload fun(id: string, size: number, Storage: table)
---- @overload fun(id: string, size: number, type: string)
---- @note If size is 1, do not provide a type.
-function ContainerHandler.new(id: string, size: number, type: string, Storage: table)
+--- @overload fun(id: string, type: string)
+--- @note If type is mono then size will default to 1.
+function ContainerHandler.new(id: string, size: number, type: string)
 	if not Utils.checkValue(id, "string", "[ContainerHandler]") then
 		return
 	end
 
-	--[[if not Utils.checkValue(size, "number", "[ContainerHandler]") then
-        return
-    end]]
+	if typeof(size) == "string" then
+		type = size
+		size = nil
+	end
 
-	-- if size is 1 then type will be "mono".
-	if size == 1 then
-		Storage = type
-		type = ContainerHandler.ContainerTypes.mono
+	if not Utils.checkValue(type, "string", "[ContainerHandler]") then
+		return
 	end
 
 	local self = {}
@@ -59,10 +56,6 @@ function ContainerHandler.new(id: string, size: number, type: string, Storage: t
 	elseif type == ContainerHandler.ContainerTypes.dictionary then
 		self._impl = DictionaryContainer.new(self)
 	end
-
-	--if Storage then
-	--    Storage[id] = self
-	--end
 
 	return self
 end

@@ -3,6 +3,7 @@ MonoContainer.__index = MonoContainer
 
 function MonoContainer.new(container: table)
 	container.type = "mono"
+	container.size = 1
 	container.contents = nil
 
 	local self = {
