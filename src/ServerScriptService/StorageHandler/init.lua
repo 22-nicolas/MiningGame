@@ -65,8 +65,8 @@ function Storage:addContainer(container: table)
 end
 
 --- Creates new container.
-function Storage:newContainer(id: string, size: number, type: string)
-	local container = ContainerHandler.new(id, size, type, self)
+function Storage:newContainer(id: string, size: number, type: string, allowedTypes: table)
+	local container = ContainerHandler.new(id, size, type, allowedTypes)
 
 	container:connectToChanged(function()
 		self:fireChanged(container)
@@ -158,7 +158,7 @@ function StorageHandler.transferItem(
 
 	local response = nextContainer:addItem(itemToTransfer, amount, nextPos)
 
-	if not response == ContainerHandler.Response.success then
+	if not (response == ContainerHandler.Response.success) then
 		return response
 	end
 
@@ -177,6 +177,12 @@ function StorageHandler.swapItems(container1: table, pos1: number, container2: t
 
 	local item1 = table.clone(container1:get(pos1))
 	local item2 = table.clone(container2:get(pos2))
+
+	--check if items are allowed
+	if not container1:isAllowed(item2) or not container2:isAllowed(item1) then
+		print("not allowed")
+		return ContainerHandler.Response.invalidType
+	end
 
 	container1:removeItemAt(pos1)
 	container2:removeItemAt(pos2)

@@ -15,6 +15,7 @@ local ContainerHandler = {
 		success = 1,
 		full = 2,
 		notEnough = 3,
+		invalidType = 4,
 	},
 }
 
@@ -27,13 +28,15 @@ Container.__index = Container
 
 --- Creates new container and returns it.
 --- @overload fun(id: string, type: string)
+--- @overload fun(id: string, type: string, allowedTypes: table)
 --- @note If type is mono then size will default to 1.
-function ContainerHandler.new(id: string, size: number, type: string)
+function ContainerHandler.new(id: string, size: number, type: string, allowedTypes: table)
 	if not Utils.checkValue(id, "string", "[ContainerHandler]") then
 		return
 	end
 
 	if typeof(size) == "string" then
+		allowedTypes = type
 		type = size
 		size = nil
 	end
@@ -47,6 +50,7 @@ function ContainerHandler.new(id: string, size: number, type: string)
 
 	self.id = id
 	self.size = size
+	self.allowedTypes = allowedTypes
 	self.connectedFuncs = {}
 
 	if type == ContainerHandler.ContainerTypes.mono then
@@ -109,6 +113,11 @@ function Container:addItem(item: table, amount: number, pos: number)
 	--set up variables
 	if typeof(item) == "string" then
 		item = Items.getItemById(item)
+	end
+
+	--check if item is allowed
+	if not self:isAllowed(item) then
+		return ContainerHandler.Response.invalidType
 	end
 
 	--check if container full
@@ -291,6 +300,24 @@ function Container:isFull(amountToBeAdded: number)
 	end
 
 	return self._impl:isFull(amountToBeAdded)
+end
+
+function Container:isAllowed(item: table)
+	if not Utils.checkValue(item, "table", "[ContainerHandler]") then
+		return
+	end
+
+	if not self.allowedTypes then
+		return true
+	end
+
+	for _, allowedType in pairs(self.allowedTypes) do
+		if allowedType == item.type then
+			return true
+		end
+	end
+
+	return false
 end
 
 return ContainerHandler

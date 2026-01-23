@@ -15,6 +15,8 @@ local stats = {
 }
 
 local Items = {
+	stats = stats,
+	types = types,
 	miningTools = {
 		admin_pick = {
 			id = "admin_pick",
