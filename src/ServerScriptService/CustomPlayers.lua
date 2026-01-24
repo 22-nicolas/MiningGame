@@ -12,16 +12,17 @@ local ItemModels = ServerStorage:WaitForChild("ItemModels")
 local bagUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("bagUpdate")
 local invUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("invUpdate")
 local hotbarUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("hotbarUpdate")
-local cursorUpdate = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("cursorUpdate")
-local cancelCursorItem = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("cancelCursorItem")
+local cursorUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("cursorUpdate")
+local cancelCursorItem = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("cancelCursorItem")
 local lootNotification = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("lootNotification")
-local slotClick = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("slotClick")
-local dropItem = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("dropItem")
-local equipHotbarSlot = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("equipHotbarSlot")
+local slotClick = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("slotClick")
+local dropItem = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("dropItem")
+local equipHotbarSlot = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("equipHotbarSlot")
 local reqStats = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("reqStats")
-local craftRequest = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("craftRequest")
+local craftRequest = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("craftRequest")
 local changed = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("changed")
 local checkRecipe = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("checkRecipe")
+local equipmentUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("equipmentUpdate")
 
 local CustomPlayers = {}
 local customPlayer = {}
@@ -49,7 +50,15 @@ function CustomPlayers.newPlayer(player: Player)
 	self.inventory:newContainer("bag", nil, StorageHandler.ContainerTypes.array)
 	self.inventory:newContainer("items", nil, StorageHandler.ContainerTypes.array)
 	self.inventory:newContainer("hotbar", self.stats.HotbarSize, StorageHandler.ContainerTypes.dictionary)
-	self.inventory:newContainer("cursorItem", 1)
+	self.inventory:newContainer("cursorItem", StorageHandler.ContainerTypes.mono)
+	self.inventory:newContainer("equipmentHelmet", StorageHandler.ContainerTypes.mono, { Items.types.helmet })
+	self.inventory:newContainer("equipmentChestplate", StorageHandler.ContainerTypes.mono)
+	self.inventory:newContainer("equipmentLeggings", StorageHandler.ContainerTypes.mono)
+	self.inventory:newContainer("equipmentBoots", StorageHandler.ContainerTypes.mono)
+	self.inventory:newContainer("equipmentNecklace", StorageHandler.ContainerTypes.mono)
+	self.inventory:newContainer("equipmentRing", StorageHandler.ContainerTypes.mono)
+	self.inventory:newContainer("equipmentBelt", StorageHandler.ContainerTypes.mono)
+	self.inventory:newContainer("equipmentGloves", StorageHandler.ContainerTypes.mono)
 	self.inventory:connectToChanged(function(changedContainer)
 		self:updateInventoryUI(changedContainer)
 		changed:FireClient(self.player)
@@ -75,7 +84,7 @@ function CustomPlayers.newPlayer(player: Player)
 	self:giveItem("rookie_pickaxe", 2, true)
 	self:giveItem("stackableTestItem", 3, true)
 	self:giveItem("mining_helmet", 1, true)
-
+	print(self.inventory)
 	self:equipHotbarSlot(1, true)
 	return self
 end
@@ -121,7 +130,6 @@ slotClick.OnServerEvent:Connect(function(player, slotType, slotNum)
 	elseif not slotItem and cursorItem.contents then
 		--Set item
 		StorageHandler.transferItem(cursorItem, 1, slotContainer, slotNum, cursorItem.contents.amount)
-		print(customPlayer.inventory)
 	elseif slotItem and cursorItem.contents then
 		--Swap
 		StorageHandler.swapItems(slotContainer, slotNum, cursorItem, 1)
@@ -277,9 +285,12 @@ function customPlayer:updateInventoryUI(changedContainer: table)
 	elseif changedContainer.id == "items" then
 		invUpdate:FireClient(self.player, self.inventory.items.contents)
 	elseif changedContainer.id == "hotbar" then
-		self:updateEquipment()
+		self:equipHotbarSlot(self.equipedHotbarSlot)
+		hotbarUpdate:FireClient(self.player, self.inventory.hotbar.contents)
 	elseif changedContainer.id == "cursorItem" then
 		cursorUpdate:FireClient(self.player, self.inventory.cursorItem.contents)
+	elseif string.match(changedContainer.id, "equipment") then
+		equipmentUpdate:FireClient(self.player, self.inventory[changedContainer.id].contents, changedContainer.id)
 	end
 end
 

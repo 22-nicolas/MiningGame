@@ -7,7 +7,8 @@ local invUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("invU
 local hotbarUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("hotbarUpdate")
 local lootNotification = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("lootNotification")
 local dropItem = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("dropItem")
-local cursorUpdate = game.ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("cursorUpdate")
+local cursorUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("cursorUpdate")
+local equipmentUpdate = ReplicatedStorage:WaitForChild("Inventory"):WaitForChild("equipmentUpdate")
 
 --Instance PlayerUI
 local PlayerUIHandler = require(game.ReplicatedStorage:WaitForChild("PlayerUIHandler"))
@@ -25,12 +26,16 @@ invUpdate.OnClientEvent:Connect(function(inventory)
 	InventoryUI.ItemsInv:update(inventory)
 end)
 
-hotbarUpdate.OnClientEvent:Connect(function(equipmentData)
-	InventoryUI.Equipment.Hotbar:update(equipmentData)
+equipmentUpdate.OnClientEvent:Connect(function(item, container)
+	InventoryUI.Equipment:update(item, container)
 end)
 
-cursorUpdate.OnClientEvent:Connect(function(equipmentData)
-	InventoryUI.cursorItem:update(equipmentData)
+hotbarUpdate.OnClientEvent:Connect(function(hotbarData)
+	InventoryUI.Equipment.Hotbar:update(hotbarData)
+end)
+
+cursorUpdate.OnClientEvent:Connect(function(cursorData)
+	InventoryUI.cursorItem:update(cursorData)
 end)
 
 lootNotification.OnClientEvent:Connect(function(item, deltaAmount)

@@ -21,11 +21,20 @@ function Equipment.new(InventoryUI)
 	self.InventoryUI = InventoryUI
 	self.Instance = InventoryUI.InventoryFrame:WaitForChild("Equipment")
 	self.char_preview = self.Instance:WaitForChild("char_preview")
-	--[[self.EquipmentHotbarFrame = self.Instance:WaitForChild("hotbar")
-	self.HotbarFrame = InventoryUI.HotbarFrame
-	self.hotbarData = nil]]
+	self.ArmorFrame = self.Instance:WaitForChild("armor")
+	self.AccessoriesFrame = self.Instance:WaitForChild("accessories")
 
-	--self:initHotbarSlots()
+	self.slots = {
+		helmet = SlotsHandler.newSlot(InventoryUI, self.ArmorFrame.helmet, { type = "equipmentHelmet" }),
+		chestplate = SlotsHandler.newSlot(InventoryUI, self.ArmorFrame.chestplate, { type = "equipmentChestplate" }),
+		leggings = SlotsHandler.newSlot(InventoryUI, self.ArmorFrame.leggings, { type = "equipmentLeggings" }),
+		boots = SlotsHandler.newSlot(InventoryUI, self.ArmorFrame.boots, { type = "equipmentBoots" }),
+		necklace = SlotsHandler.newSlot(InventoryUI, self.AccessoriesFrame.necklace, { type = "equipmentNecklace" }),
+		ring = SlotsHandler.newSlot(InventoryUI, self.AccessoriesFrame.ring, { type = "equipmentRing" }),
+		belt = SlotsHandler.newSlot(InventoryUI, self.AccessoriesFrame.belt, { type = "equipmentBelt" }),
+		gloves = SlotsHandler.newSlot(InventoryUI, self.AccessoriesFrame.gloves, { type = "equipmentGloves" }),
+	}
+
 	self.Hotbar = Hotbar.initHotbar(InventoryUI, self)
 
 	self:initCharPreiview()
@@ -65,25 +74,15 @@ function Equipment:initHotbarSlots()
 	end
 end
 
-function Equipment:update(hotbarData)
-	if not hotbarData and not self.hotbarData then
+function Equipment:update(item, containerId)
+	if not containerId then
 		return
 	end
 
-	--if func gets called from client it will not provide hotbarData => proceed with last data
-	if not hotbarData then
-		hotbarData = self.hotbarData
-	else
-		self.hotbarData = hotbarData
-	end
+	--format container id (example: "equipmentHelmet" -> "helmet")
+	containerId = string.lower(string.sub(containerId, string.len("equipment") + 1, string.len(containerId)))
 
-	-- update hotbar
-	for i = 1, #self.HotbarSlots do
-		local itemData = hotbarData[tostring(i)]
-
-		self.EquipmentHotbarSlots[i]:setItem(itemData)
-		self.HotbarSlots[i]:setItem(itemData)
-	end
+	self.slots[containerId]:setItem(item)
 end
 
 function Equipment:equipHotbarSlot(slotNum: number)
