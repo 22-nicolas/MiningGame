@@ -42,6 +42,7 @@ function CustomPlayers.newPlayer(player: Player)
 	self.stats.miningXP = 0
 	self.stats.fortune = 0
 	self.stats.miningSpeed = 0
+	self.stats.swingRangeBonus = 0
 	self.stats.weakSpotBonusMultiplier = 1
 	self.stats.invSlots = 35
 	self.stats.HotbarSize = 6
@@ -250,6 +251,29 @@ checkRecipe.OnServerEvent:Connect(function(player, recipe)
 
 	checkRecipe:FireClient(player, true)
 end)
+
+function customPlayer:getEquipmentStatBonus(stat: string)
+	if not Utils.checkValue(stat, "string", "[CustomPlayers]") then
+		return
+	end
+
+	if not Items.stats[stat] then
+		warn("[CustomPlayers] Invalid stat: " .. stat, debug.traceback())
+		return
+	end
+
+	local statBonus = 0
+	for _, container in pairs(self.equipment) do
+		if not container.contents then
+			continue
+		end
+		if container.contents[stat] then
+			statBonus += container.contents[stat]
+		end
+	end
+
+	return statBonus
+end
 
 function customPlayer:craft(recipe: table)
 	for _, ingredient in pairs(recipe.ingredients) do

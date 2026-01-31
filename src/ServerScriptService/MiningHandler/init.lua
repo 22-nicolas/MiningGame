@@ -195,7 +195,9 @@ function Node:mine(player: Player, deltaTime: number)
 		end
 	end
 
-	local totalSpeed = toolData.miningSpeed + customPlayer.stats.miningSpeed
+	local totalSpeed = toolData.miningSpeed
+		+ customPlayer.stats.miningSpeed
+		+ customPlayer:getEquipmentStatBonus(Items.stats.miningSpeed)
 	local mineRate = 0.9886 * math.pow(2.718, -0.002 * totalSpeed) + self.oreData.miningDifficulty
 
 	if customPlayer.miningData.wasMining then
@@ -210,8 +212,11 @@ function Node:mine(player: Player, deltaTime: number)
 		self.health = math.max(0, self.health - 1)
 
 		--CHECK FOR HIT
+		local totalSwingRange = toolData.swingRange
+			+ customPlayer.stats.swingRangeBonus
+			+ customPlayer:getEquipmentStatBonus(Items.stats.swingRange)
 		local hitResult =
-			MiningHandler.checkHit(player, { game.Workspace.ResourceNodes:GetChildren() }, toolData.swingRange)
+			MiningHandler.checkHit(player, { game.Workspace.ResourceNodes:GetChildren() }, totalSwingRange)
 		if not hitResult then
 			self:removeMiningPlayer(player)
 			return
@@ -294,7 +299,10 @@ function Node:mine(player: Player, deltaTime: number)
 
 		--Items
 
-		local totalFortune = toolData.miningFortune + customPlayer.stats.fortune + weakSpotBonus
+		local totalFortune = toolData.miningFortune
+			+ customPlayer.stats.fortune
+			+ weakSpotBonus
+			+ customPlayer:getEquipmentStatBonus(Items.stats.miningFortune)
 		local trueFortune = math.log(0.9 * totalFortune + 200, 1.8) - 9.0141
 		local adjustedTable = MiningHandler.getAdjustedTable(self.oreData.dropTable, trueFortune)
 		local loot = MiningHandler.dropLoot(adjustedTable, trueFortune)

@@ -73,7 +73,7 @@ local Items = {
 			displayName = "Mining Helmet",
 			rarity = Rarities.rare,
 			description = "",
-			img = "http://www.roblox.com/asset/?id=258161647",
+			img = "http://www.roblox.com/asset/?id=1220345417", --"http://www.roblox.com/asset/?id=258161647",
 			npcSell = 40,
 			miningFortune = 20,
 			miningSpeed = 20,
