@@ -4,6 +4,13 @@ local Utils = require(game.ReplicatedStorage:WaitForChild("Utils"))
 local types = {
 	Pickaxe = "Pickaxe",
 	helmet = "helmet",
+	chestplate = "chestplate",
+	leggings = "leggings",
+	boots = "boots",
+	necklace = "necklace",
+	ring = "ring",
+	belt = "belt",
+	gloves = "gloves",
 }
 
 local stats = {

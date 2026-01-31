@@ -51,15 +51,20 @@ function CustomPlayers.newPlayer(player: Player)
 	self.inventory:newContainer("items", nil, StorageHandler.ContainerTypes.array)
 	self.inventory:newContainer("hotbar", self.stats.HotbarSize, StorageHandler.ContainerTypes.dictionary)
 	self.inventory:newContainer("cursorItem", StorageHandler.ContainerTypes.mono)
-	self.inventory:newContainer("equipmentHelmet", StorageHandler.ContainerTypes.mono, { Items.types.helmet })
-	self.inventory:newContainer("equipmentChestplate", StorageHandler.ContainerTypes.mono)
-	self.inventory:newContainer("equipmentLeggings", StorageHandler.ContainerTypes.mono)
-	self.inventory:newContainer("equipmentBoots", StorageHandler.ContainerTypes.mono)
-	self.inventory:newContainer("equipmentNecklace", StorageHandler.ContainerTypes.mono)
-	self.inventory:newContainer("equipmentRing", StorageHandler.ContainerTypes.mono)
-	self.inventory:newContainer("equipmentBelt", StorageHandler.ContainerTypes.mono)
-	self.inventory:newContainer("equipmentGloves", StorageHandler.ContainerTypes.mono)
 	self.inventory:connectToChanged(function(changedContainer)
+		self:updateInventoryUI(changedContainer)
+		changed:FireClient(self.player)
+	end)
+	self.equipment = StorageHandler.new()
+	self.equipment:newContainer("equipmentHelmet", StorageHandler.ContainerTypes.mono, { Items.types.helmet })
+	self.equipment:newContainer("equipmentChestplate", StorageHandler.ContainerTypes.mono, { Items.types.chestplate })
+	self.equipment:newContainer("equipmentLeggings", StorageHandler.ContainerTypes.mono, { Items.types.leggings })
+	self.equipment:newContainer("equipmentBoots", StorageHandler.ContainerTypes.mono, { Items.types.boots })
+	self.equipment:newContainer("equipmentNecklace", StorageHandler.ContainerTypes.mono, { Items.types.necklace })
+	self.equipment:newContainer("equipmentRing", StorageHandler.ContainerTypes.mono, { Items.types.ring })
+	self.equipment:newContainer("equipmentBelt", StorageHandler.ContainerTypes.mono, { Items.types.belt })
+	self.equipment:newContainer("equipmentGloves", StorageHandler.ContainerTypes.mono, { Items.types.gloves })
+	self.equipment:connectToChanged(function(changedContainer)
 		self:updateInventoryUI(changedContainer)
 		changed:FireClient(self.player)
 	end)
@@ -117,13 +122,23 @@ slotClick.OnServerEvent:Connect(function(player, slotType, slotNum)
 		return
 	end
 
-	local slotItem = customPlayer.inventory[slotType]:get(slotNum)
+	--get right container
+	local slotContainer
+	if customPlayer.inventory[slotType] then
+		slotContainer = customPlayer.inventory[slotType]
+	end
+	if customPlayer.equipment[slotType] then
+		slotContainer = customPlayer.equipment[slotType]
+	end
+
+	local slotItem = slotContainer:get(slotNum)
+
 	local cursorItem = customPlayer.inventory.cursorItem
 
 	if not slotItem and not cursorItem.contents then
 		return
 	end
-	local slotContainer = customPlayer.inventory[slotType] --customPlayer:getContainerFromId(slotType)
+
 	if not cursorItem.contents then
 		--"Pick up" item
 		StorageHandler.transferItem(slotContainer, slotNum, cursorItem, 1)
@@ -290,7 +305,7 @@ function customPlayer:updateInventoryUI(changedContainer: table)
 	elseif changedContainer.id == "cursorItem" then
 		cursorUpdate:FireClient(self.player, self.inventory.cursorItem.contents)
 	elseif string.match(changedContainer.id, "equipment") then
-		equipmentUpdate:FireClient(self.player, self.inventory[changedContainer.id].contents, changedContainer.id)
+		equipmentUpdate:FireClient(self.player, self.equipment[changedContainer.id].contents, changedContainer.id)
 	end
 end
 
