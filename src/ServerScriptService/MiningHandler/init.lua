@@ -11,6 +11,7 @@ local MiningHandler = {
 	weakSpotBonus = 10,
 
 	nodes = {},
+	nodesInstances = {},
 
 	--ATRIBUTES FOR ORES
 	coal = {
@@ -62,6 +63,8 @@ function MiningHandler.newNode(ResourceNode: Part)
 	self.id = id
 
 	MiningHandler.nodes[id] = self
+	table.insert(MiningHandler.nodesInstances, self.instance)
+
 	return self
 end
 
@@ -215,8 +218,7 @@ function Node:mine(player: Player, deltaTime: number)
 		local totalSwingRange = toolData.swingRange
 			+ customPlayer.stats.swingRangeBonus
 			+ customPlayer:getEquipmentStatBonus(Items.stats.swingRange)
-		local hitResult =
-			MiningHandler.checkHit(player, { game.Workspace.ResourceNodes:GetChildren() }, totalSwingRange)
+		local hitResult = MiningHandler.checkHit(player, MiningHandler.nodesInstances, totalSwingRange)
 		if not hitResult then
 			self:removeMiningPlayer(player)
 			return
@@ -263,7 +265,7 @@ function Node:mine(player: Player, deltaTime: number)
 		local ParticleEmitter
 		local ParticlePart
 		local success, err = pcall(function()
-			ParticlePart = workspace.ResourceNodes.particles.particlePart:Clone()
+			ParticlePart = workspace.assets.ResourceNodes.particles.particlePart:Clone()
 			ParticlePart.Parent = self.instance
 			ParticleEmitter = ParticlePart.ParticleEmitter
 		end)
@@ -287,7 +289,7 @@ function Node:mine(player: Player, deltaTime: number)
 		if string.lower(toolData.type) == "pickaxe" then
 			local index = math.random(1, 4)
 			local soundName = "Pickaxe Strike 0" .. tostring(index)
-			local Sound = workspace.ResourceNodes.sfx.pickaxe:FindFirstChild(soundName)
+			local Sound = workspace.assets.ResourceNodes.sfx.pickaxe:FindFirstChild(soundName)
 
 			Sound:Play()
 		end

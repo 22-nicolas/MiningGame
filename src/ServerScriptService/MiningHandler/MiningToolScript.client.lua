@@ -30,7 +30,7 @@ tool.Equipped:Connect(function()
 
 	connections.buttonDown = mouse.Button1Down:Connect(function()
 		target = mouse.Target
-		if not target or not target:IsDescendantOf(game.Workspace.ResourceNodes) then
+		if not target or not target:IsDescendantOf(game.Workspace["First Area"].ResourceNodes) then
 			return
 		end
 		if target.Name == "raycastCopy" then
@@ -55,11 +55,11 @@ tool.Equipped:Connect(function()
 			if button.UserInputType ~= Enum.UserInputType.MouseButton1 then
 				return
 			end
-			if target and target:IsDescendantOf(game.Workspace.ResourceNodes) then
+			if target and (target.Parent:GetAttribute("ore") or target.Parent.Parent:GetAttribute("ore")) then
 				return
 			end
 			target = mouse.Target
-			if not target or not target:IsDescendantOf(game.Workspace.ResourceNodes) then
+			if not target or not (target.Parent:GetAttribute("ore") or target.Parent.Parent:GetAttribute("ore")) then
 				return
 			end
 			if target.Name == "raycastCopy" then
