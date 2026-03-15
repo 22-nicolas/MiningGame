@@ -38,4 +38,4 @@ When the player gains Items/Materials they get displayed by the `src/ReplicatedS
 ### 🎬 Preview
 Here’s a short look at mining in action (loot notifications weren't on screen):
 
-![Mining Demo](https://github.com/user-attachments/assets/2bc0cc6d-7df9-48ad-b6bb-bd19b2b57b5b)
+[Mining Demo](https://github.com/user-attachments/assets/2bc0cc6d-7df9-48ad-b6bb-bd19b2b57b5b)
