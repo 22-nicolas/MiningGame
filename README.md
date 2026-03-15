@@ -20,21 +20,22 @@ As of right now the player can mine nodes. Tools have stats like mining speed or
 When a player joins a new metatable gets created that stores player data. When mining the player gets rewarded with loot drops and xp. The server then fires a RemoteEvent to update the players UI on the client.
 
 ### UI/Frontend
-When the player gains Items/Materials they get displayed by the `src/ReplicatedStorage/PlayerUI` scripts. The Items can be Equiped to the Hotbar this is in early Progress though and has some bugs because of the way Roblox handles tables (dictionary/array) and how RemoteEvents send the data.
+When the player gains Items/Materials they get displayed by the `src/ReplicatedStorage/PlayerUI` scripts.
 
 ### Other
 - Loot notifications
 - Fortnite like weak spot system.
 
 ### Future Implementations
-- Fixing hotbar bugs
-- I`m not very pleased with some parts of the Module scripts that handle player UI, they are hard to read and are not error proof. I will need to clean up my code
-- Finishing UI functionality
-- Crafting system
-- NPCs
-- Auction House
+- [x] Fixing hotbar bugs
+- [x] I`m not very pleased with some parts of the Module scripts that handle player UI, they are hard to read and are not error proof. I will need to clean up my code
+- [x] Finishing UI functionality
+- [x] Crafting system
+- [ ] NPCs
+- [ ] Auction House
+- [ ] Roaming creatures that can be either fought or tamed
 
 ### 🎬 Preview
 Here’s a short look at mining in action (loot notifications weren't on screen):
 
-![Mining Demo](https://imgur.com/a/GoSG4VJ)
+![Mining Demo](./mining_demo.mp4)
